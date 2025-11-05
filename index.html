@@ -20,6 +20,8 @@
     <meta property="twitter:title" content="Oleg Madara - Full Stack Developer" />
     <meta property="twitter:description" content="Personal website created by Oleg Madara, a Full Stack Developer. Showcasing simple, clean web development with a focus on lightweight and minimal design." />
     
+    <script src="https://analytics.ahrefs.com/analytics.js" data-key="mkLi8IsyaOCq4YT1Qir59A" async></script>
+
     <link rel="stylesheet" href="css/style.css" />
   </head>
   <body>
@@ -51,11 +53,17 @@
     <!-- Google tag (gtag.js) -->
     <script async src="https://www.googletagmanager.com/gtag/js?id=G-L29QHJZ462"></script>
     <script>
+      // goolge
       window.dataLayer = window.dataLayer || [];
       function gtag(){dataLayer.push(arguments);}
       gtag('js', new Date());
-
       gtag('config', 'G-L29QHJZ462');
+      // aheref
+      var ahrefs_analytics_script = document.createElement('script');
+      ahrefs_analytics_script.async = true;
+      ahrefs_analytics_script.src = 'https://analytics.ahrefs.com/analytics.js';
+      ahrefs_analytics_script.setAttribute('data-key', 'mkLi8IsyaOCq4YT1Qir59A');
+      document.getElementsByTagName('head')[0].appendChild(ahrefs_analytics_script);
     </script>
   </body>
 </html>
