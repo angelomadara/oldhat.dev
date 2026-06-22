@@ -5,66 +5,168 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>oldhat.dev</title>
     <style>
-        body {
+        :root {
+            --primary-button-text-color: #fff;
+            --primary-button-bg-color: #1a73e8;
+        }
+
+        * {
             margin: 0;
             padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
             background-color: #fff;
             color: #202124;
-            font-family: 'Segoe UI', Tahoma, sans-serif;
+            font-family: system-ui, sans-serif;
+            font-size: 14px;
+            line-height: 1.6;
+            min-height: 100vh;
             display: flex;
+            flex-direction: column;
+        }
+
+        .error-page {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
             justify-content: center;
-            align-items: center;
-            height: 100vh;
+            padding: 40px 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .error-icon {
+            width: 72px;
+            height: 72px;
+            margin-bottom: 24px;
+            flex-shrink: 0;
+        }
+
+        .error-icon img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+
+        .error-title {
+            font-size: 20px;
+            font-weight: 400;
+            color: #202124;
+            margin-bottom: 12px;
             text-align: left;
         }
-        .container {
-            max-width: 600px;
-            padding: 40px;
-        }
-        .icon {
-            font-size: 64px;
-            color: #BDBDBD;
-            margin-bottom: 20px;
-        }
-        h1 {
-            font-size: 22px;
-            font-weight: 400;
-            margin: 0 0 15px 0;
-            color: #202124;
-        }
-        .error-code {
+
+        .error-summary {
             font-size: 14px;
             color: #5f6368;
-            margin-bottom: 30px;
-            display: block;
+            margin-bottom: 6px;
+            text-align: left;
+            line-height: 1.6;
         }
-        .actions {
-            display: flex;
-            gap: 12px;
+
+        .error-details {
+            font-size: 13px;
+            color: #70757a;
+            text-align: left;
+            margin-bottom: 32px;
+            line-height: 1.6;
         }
-        .btn {
-            padding: 8px 16px;
-            font-size: 14px;
-            border: 1px solid #dadce0;
-            background: #f8f9fa;
-            color: #1a73e8;
+
+        .error-code {
+            color: #70757a;
+            font-size: 13px;
+        }
+
+        .button-row {
+            align-self: stretch;
+            overflow: hidden;
+        }
+
+        .reload-button {
+            border: 0;
+            border-radius: 20px;
+            box-sizing: border-box;
+            color: var(--primary-button-text-color);
             cursor: pointer;
-            border-radius: 4px;
-            text-decoration: none;
+            float: right;
+            font-size: .875em;
+            font-family: system-ui, sans-serif;
+            margin: 0;
+            padding: 8px 16px;
+            background-color: var(--primary-button-bg-color);
+            transition: box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+            user-select: none;
         }
-        .btn:hover {
-            background: #f1f3f4;
+
+        .reload-button:hover {
+            box-shadow: 0 1px 3px 1px rgba(66, 133, 244, 0.15),
+                        0 1px 2px 0 rgba(66, 133, 244, 0.3);
+        }
+
+        .reload-button:active {
+            background-color: #1558b0;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 40px;
+            left: 50%;
+            transform: translateX(-50%) translateY(80px);
+            background-color: #323232;
+            color: #fff;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: system-ui, sans-serif;
+            opacity: 0;
+            transition: all 0.3s ease;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateX(-50%) translateY(0);
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <div class="icon">🌐</div>
-        <h1>This site can’t be reached</h1>
-        <span class="error-code">oldhat.dev’s server isn’t responding. ERR_CONNECTION_REFUSED</span>
-        <div class="actions">
-            <a href="#" class="btn" onclick="location.reload()">Reload</a>
+    <div class="error-page">
+        <div class="error-icon">
+            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJAAAACQAQMAAADdiHD7AAAABlBMVEUAAABTU1OoaSf/AAAAAXRSTlMAQObYZgAAAFJJREFUeF7t0cENgDAMQ9FwYgxG6WjpaIzCCAxQxVggFuDiCvlLOeRdHR9yzjncHVoq3npu+wQUrUuJHylSTmBaespJyJQoObUeyxDQb3bEm5Au81c0pSCD8HYAAAAASUVORK5CYII=" alt="Error icon">
+        </div>
+
+        <h1 class="error-title">This site can't be reached</h1>
+
+        <p class="error-summary">
+            <strong>oldhat.dev</strong>'s DNS address could not be found. Diagnosing the problem.
+        </p>
+
+        <p class="error-details">
+            <span class="error-code">DNS_PROBE_POSSIBLE</span>
+        </p>
+
+        <div class="button-row">
+            <button class="reload-button" id="reloadBtn">Reload</button>
         </div>
     </div>
+
+    <div class="toast" id="toast">Checking your connection…</div>
+
+    <script>
+        const reloadBtn = document.getElementById('reloadBtn');
+        const toast = document.getElementById('toast');
+
+        reloadBtn.addEventListener('click', function() {
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 2500);
+        });
+    </script>
 </body>
 </html>
