@@ -1,6 +1,6 @@
 import { Router } from "express";
 import healthController from "../controllers/examples/health.controller";
-import statisticsController from "../controllers/statistics.controller";
+import { statisticsController } from "../composition-root";
 import { generalLimiter } from "../middleware/rateLimiter";
 
 const router = Router();
