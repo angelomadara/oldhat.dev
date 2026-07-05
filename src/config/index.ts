@@ -1,6 +1,12 @@
 import dotenv from "dotenv";
 dotenv.config();
 
+function required(key: string): string {
+  const val = process.env[key];
+  if (!val) throw new Error(`Missing required env var: ${key}`);
+  return val;
+}
+
 const config = {
   port: parseInt(process.env.PORT || "3001", 10),
   nodeEnv: process.env.NODE_ENV || "development",
@@ -10,11 +16,11 @@ const config = {
   host: process.env.HOST || "127.0.0.1",
 
   // ── MySQL ─────────────────────────────────────────
-  dbHost: process.env.DB_HOST || "localhost",
-  dbPort: parseInt(process.env.DB_PORT || "3306", 10),
-  dbUser: process.env.DB_USER || "socrates",
-  dbPassword: process.env.DB_PASSWORD || "know_thyself_2026",
-  dbName: process.env.DB_NAME || "oldhat_visitors",
+  dbHost: required("DB_HOST"),
+  dbPort: parseInt(required("DB_PORT"), 10),
+  dbUser: required("DB_USER"),
+  dbPassword: required("DB_PASSWORD"),
+  dbName: required("DB_NAME"),
 
   // ── Rate Limiting ──────────────────────────────
   rateLimitWindowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS || "900000", 10),
@@ -24,8 +30,8 @@ const config = {
   pageLimit: parseInt(process.env.PAGE_LIMIT || "10", 10),
 
   // ── JWT ────────────────────────────────────────
-  jwtAccessSecret: process.env.JWT_ACCESS_SECRET || "dev-access-secret-change-in-production",
-  jwtRefreshSecret: process.env.JWT_REFRESH_SECRET || "dev-refresh-secret-change-in-production",
+  jwtAccessSecret: required("JWT_ACCESS_SECRET"),
+  jwtRefreshSecret: required("JWT_REFRESH_SECRET"),
   jwtExpiresIn: process.env.JWT_EXPIRES_IN || "24h",
 
   // ── CORS ───────────────────────────────────────
