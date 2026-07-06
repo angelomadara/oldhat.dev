@@ -238,7 +238,8 @@
       <div><span class="label">🌐 Top IPs</span> <span class="hint" x-text="`(${visitorData?.data?.topIps?.length ?? 0})`"></span></div>
       <span class="chevron" x-text="openSections.topIps ? '▲' : '▼'"></span>
     </div>
-    <div class="section-body" x-show="openSections.topIps">
+    <template x-if="openSections.topIps">
+    <div class="section-body">
       <div class="card" style="overflow-x:auto;padding:12px;">
         <table>
           <thead>
@@ -260,6 +261,7 @@
         </table>
       </div>
     </div>
+    </template>
   </div>
 
   <!-- Bot Breakdown -->
@@ -268,7 +270,8 @@
       <div><span class="label">🤖 Bot Breakdown</span> <span class="hint" x-text="`(${visitorData?.data?.botBreakdown?.length ?? 0})`"></span></div>
       <span class="chevron" x-text="openSections.bots ? '▲' : '▼'"></span>
     </div>
-    <div class="section-body" x-show="openSections.bots" >
+    <template x-if="openSections.bots">
+    <div class="section-body">
       <div class="card" style="overflow-x:auto;padding:12px;">
         <table>
           <thead><tr><th>Bot</th><th>Hits</th><th>Unique IPs</th></tr></thead>
@@ -284,6 +287,7 @@
         </table>
       </div>
     </div>
+    </template>
   </div>
 
   <!-- Paths -->
@@ -292,7 +296,8 @@
       <div><span class="label">📁 Path Activity</span> <span class="hint" x-text="`(${visitorData?.data?.paths?.length ?? 0} paths)`"></span></div>
       <span class="chevron" x-text="openSections.paths ? '▲' : '▼'"></span>
     </div>
-    <div class="section-body" x-show="openSections.paths" >
+    <template x-if="openSections.paths">
+    <div class="section-body">
       <div class="card" style="overflow-x:auto;padding:12px;">
         <table>
           <thead><tr><th>Path</th><th>Hits</th><th>Unique IPs</th><th>200</th><th>404</th><th>Other</th><th>Category</th></tr></thead>
@@ -312,6 +317,7 @@
         </table>
       </div>
     </div>
+    </template>
   </div>
 
   <!-- Status Codes -->
@@ -320,7 +326,8 @@
       <div><span class="label">📊 Status Code Distribution</span></div>
       <span class="chevron" x-text="openSections.status ? '▲' : '▼'"></span>
     </div>
-    <div class="section-body" x-show="openSections.status" >
+    <template x-if="openSections.status">
+    <div class="section-body">
       <div class="card">
         <div class="threat-grid" style="grid-template-columns:repeat(auto-fit,minmax(100px,1fr))">
           <template x-for="sc in (visitorData?.data?.statusCodes ?? [])" :key="sc.code">
@@ -332,6 +339,7 @@
         </div>
       </div>
     </div>
+    </template>
   </div>
 
   <!-- Hourly Activity -->
@@ -340,7 +348,8 @@
       <div><span class="label">⏰ Hourly Activity</span></div>
       <span class="chevron" x-text="openSections.hourly ? '▲' : '▼'"></span>
     </div>
-    <div class="section-body" x-show="openSections.hourly" >
+    <template x-if="openSections.hourly">
+    <div class="section-body">
       <div class="card">
         <template x-for="hr in (visitorData?.data?.hourlyActivity ?? [])" :key="hr.hour">
           <div class="hour-bar">
@@ -358,6 +367,7 @@
         </div>
       </div>
     </div>
+    </template>
   </div>
 
   <footer>
