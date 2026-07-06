@@ -245,7 +245,7 @@
           <tr><th>#</th><th>IP</th><th>Country</th><th>Hits</th><th>Type</th><th>Bot Name</th><th>Top Status</th></tr>
           </thead>
           <tbody>
-            <template x-for="(ip, i) in visitorData?.data?.topIps" :key="ip.ip">
+            <template x-for="(ip, i) in (visitorData?.data?.topIps ?? [])" :key="ip.ip">
               <tr>
                 <td style="color:var(--muted)" x-text="i+1"></td>
                 <td style="font-family:monospace;font-size:12px;" x-text="maskIP(ip.ip, ip.isBot)" :title="ip.isBot ? ip.ip : ''"></td>
@@ -273,7 +273,7 @@
         <table>
           <thead><tr><th>Bot</th><th>Hits</th><th>Unique IPs</th></tr></thead>
           <tbody>
-            <template x-for="bot in visitorData?.data?.botBreakdown" :key="bot.botName">
+            <template x-for="bot in (visitorData?.data?.botBreakdown ?? [])" :key="bot.botName">
               <tr>
                 <td style="font-weight:600" x-text="bot.botName"></td>
                 <td x-text="bot.hitCount?.toLocaleString()"></td>
@@ -297,7 +297,7 @@
         <table>
           <thead><tr><th>Path</th><th>Hits</th><th>Unique IPs</th><th>200</th><th>404</th><th>Other</th><th>Category</th></tr></thead>
           <tbody>
-            <template x-for="p in visitorData?.data?.paths" :key="p.path">
+            <template x-for="p in (visitorData?.data?.paths ?? [])" :key="p.path">
               <tr>
                 <td style="font-size:12px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:monospace;" x-text="p.path"></td>
                 <td style="font-weight:600" x-text="p.hitCount?.toLocaleString()"></td>
@@ -323,7 +323,7 @@
     <div class="section-body" x-show="openSections.status" >
       <div class="card">
         <div class="threat-grid" style="grid-template-columns:repeat(auto-fit,minmax(100px,1fr))">
-          <template x-for="sc in visitorData?.data?.statusCodes" :key="sc.code">
+          <template x-for="sc in (visitorData?.data?.statusCodes ?? [])" :key="sc.code">
             <div class="threat-item">
               <span class="status-code" :class="statusClass(sc.code)" x-text="sc.code"></span>
               <span class="count" x-text="sc.hitCount?.toLocaleString()"></span>
@@ -342,7 +342,7 @@
     </div>
     <div class="section-body" x-show="openSections.hourly" >
       <div class="card">
-        <template x-for="hr in visitorData?.data?.hourlyActivity" :key="hr.hour">
+        <template x-for="hr in (visitorData?.data?.hourlyActivity ?? [])" :key="hr.hour">
           <div class="hour-bar">
             <span class="hour-label" x-text="String(hr.hour).padStart(2,'0')"></span>
             <div class="bar-track">
