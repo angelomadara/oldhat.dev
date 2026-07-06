@@ -749,9 +749,15 @@
           async fetchAndSwap(url, target, swap = "innerHTML") {
             const date = this.selectedDate;
             try {
-              const res = await fetch(`${url}?date=${date}`);
+              const res = await fetch(`${url}?date=${date}`, {
+                headers: { "HX-Request": "true" },
+              });
               if (!res.ok) throw new Error(res.status);
-              const html = await res.text();
+              let html = await res.text();
+              // Ensure the target element keeps its id after swap
+              if (swap === "outerHTML" && !html.includes(`id="${target.slice(1)}"`)) {
+                html = `<div id="${target.slice(1)}">${html}</div>`;
+              }
               const el = document.querySelector(target);
               if (!el) return;
               if (swap === "outerHTML") {
