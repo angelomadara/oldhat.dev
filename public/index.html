@@ -158,6 +158,12 @@
       <span style="color:var(--muted);font-weight:400;" x-text="lastChecked"></span>
     </div>
     <div class="date-picker">
+      <span style="font-size:13px;color:var(--muted);">Domain:</span>
+      <select x-model="selectedDomain" @change="loadReport()" style="background:var(--card);border:1px solid var(--border);color:var(--fg);padding:6px 10px;border-radius:8px;font-size:13px;font-family:var(--font);">
+        <option value="">All</option>
+        <option value="oldhat.dev">oldhat.dev</option>
+        <option value="api.oldhat.dev">api.oldhat.dev</option>
+      </select>
       <span style="font-size:13px;color:var(--muted);">Date:</span>
       <input type="date" x-model="selectedDate" @change="loadReport()">
       <button @click="loadReport()" :disabled="loading">Refresh</button>
@@ -171,7 +177,7 @@
       <template x-if="!visitorData"><div><div class="skeleton" style="width:60%"></div></div></template>
       <template x-if="visitorData">
         <div><div class="card-value" x-text="(visitorData?.data?.summary?.totalRequests ?? '—').toLocaleString()"></div>
-        <div class="card-label" x-text="visitorData?.data?.date"></div></div>
+        <div class="card-label" x-text="visitorData?.data?.domain ? visitorData?.data?.domain : 'All domains'"></div></div>
       </template>
     </div>
     <div class="card">
@@ -383,6 +389,7 @@
       healthData: null,
       visitorData: null,
       selectedDate: '',
+      selectedDomain: '',
       loading: false,
       maxHits: 1,
       openSections: { topIps: false, bots: false, paths: false, status: false, hourly: true },
@@ -409,7 +416,9 @@
       async loadReport() {
         this.loading = true;
         try {
-          const res = await fetch(`https://oldhat.dev/api/v1/statistics/visitors?date=${this.selectedDate}`);
+          let url = `https://oldhat.dev/api/v1/statistics/visitors?date=${this.selectedDate}`;
+          if (this.selectedDomain) url += `&domain=${this.selectedDomain}`;
+          const res = await fetch(url);
           if (!res.ok) {
             this.visitorData = null;
             return;
