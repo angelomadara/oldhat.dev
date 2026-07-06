@@ -420,6 +420,10 @@
         ></div>
       </header>
 
+      <p style="margin: -8px 0 16px; font-size: 13px; color: var(--muted); line-height: 1.5">
+        Daily report of bot and human activity from nginx access logs.
+      </p>
+
       <!-- ── Status Bar + Date ── -->
       <div class="status-bar">
         <div class="status-badge">
@@ -442,6 +446,7 @@
           <input
             type="date"
             x-model="selectedDate"
+            :max="today"
             @change="loadDay()"
           />
           <button @click="swapSections()">
@@ -696,6 +701,7 @@
           lastChecked: "",
           healthData: null,
           selectedDate: "",
+          today: "",
           openSections: {
             topIps: false,
             bots: false,
@@ -709,6 +715,7 @@
           async init() {
             const d = new Date();
             this.selectedDate = d.toISOString().slice(0, 10);
+            this.today = this.selectedDate;
             try {
               const res = await fetch(
                 "https://oldhat.dev/api/v1/health",
