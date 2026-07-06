@@ -238,7 +238,7 @@
       <div><span class="label">🌐 Top IPs</span> <span class="hint" x-text="`(${visitorData?.data?.topIps?.length ?? 0})`"></span></div>
       <span class="chevron" x-text="openSections.topIps ? '▲' : '▼'"></span>
     </div>
-    <template x-if="openSections.topIps">
+    <template x-if="openSections.topIps && visitorData?.data?.topIps">
     <div class="section-body">
       <div class="card" style="overflow-x:auto;padding:12px;">
         <table>
@@ -270,7 +270,7 @@
       <div><span class="label">🤖 Bot Breakdown</span> <span class="hint" x-text="`(${visitorData?.data?.botBreakdown?.length ?? 0})`"></span></div>
       <span class="chevron" x-text="openSections.bots ? '▲' : '▼'"></span>
     </div>
-    <template x-if="openSections.bots">
+    <template x-if="openSections.bots && visitorData?.data?.botBreakdown">
     <div class="section-body">
       <div class="card" style="overflow-x:auto;padding:12px;">
         <table>
@@ -296,7 +296,7 @@
       <div><span class="label">📁 Path Activity</span> <span class="hint" x-text="`(${visitorData?.data?.paths?.length ?? 0} paths)`"></span></div>
       <span class="chevron" x-text="openSections.paths ? '▲' : '▼'"></span>
     </div>
-    <template x-if="openSections.paths">
+    <template x-if="openSections.paths && visitorData?.data?.paths">
     <div class="section-body">
       <div class="card" style="overflow-x:auto;padding:12px;">
         <table>
@@ -326,7 +326,7 @@
       <div><span class="label">📊 Status Code Distribution</span></div>
       <span class="chevron" x-text="openSections.status ? '▲' : '▼'"></span>
     </div>
-    <template x-if="openSections.status">
+    <template x-if="openSections.status && visitorData?.data?.statusCodes">
     <div class="section-body">
       <div class="card">
         <div class="threat-grid" style="grid-template-columns:repeat(auto-fit,minmax(100px,1fr))">
@@ -348,7 +348,7 @@
       <div><span class="label">⏰ Hourly Activity</span></div>
       <span class="chevron" x-text="openSections.hourly ? '▲' : '▼'"></span>
     </div>
-    <template x-if="openSections.hourly">
+    <template x-if="openSections.hourly && visitorData?.data?.hourlyActivity">
     <div class="section-body">
       <div class="card">
         <template x-for="hr in (visitorData?.data?.hourlyActivity ?? [])" :key="hr.hour">
@@ -391,7 +391,7 @@
       apiStatus: 'loading',
       lastChecked: '',
       healthData: null,
-      visitorData: { data: { summary: {}, threatIntelligence: {}, topIps: [], botBreakdown: [], paths: [], statusCodes: [], hourlyActivity: [] } },
+      visitorData: null,
       selectedDate: '',
       loading: false,
       maxHits: 1,
