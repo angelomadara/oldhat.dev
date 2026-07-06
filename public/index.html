@@ -6,167 +6,405 @@
     <title>oldhat.dev</title>
     <style>
         :root {
-            --primary-button-text-color: #fff;
-            --primary-button-bg-color: #1a73e8;
+            --bg: #ffffff;
+            --fg: #1a1a2e;
+            --muted: #6b7280;
+            --card: #f3f4f6;
+            --border: #e5e7eb;
+            --accent: #3b82f6;
+            --accent-hover: #2563eb;
+            --green: #10b981;
+            --red: #ef4444;
+            --font: system-ui, -apple-system, 'Segoe UI', sans-serif;
         }
 
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
+        .dark {
+            --bg: #0f172a;
+            --fg: #e2e8f0;
+            --muted: #94a3b8;
+            --card: #1e293b;
+            --border: #334155;
+            --accent: #60a5fa;
+            --accent-hover: #3b82f6;
+            --green: #34d399;
+            --red: #f87171;
         }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
 
         body {
-            background-color: #fff;
-            color: #202124;
-            font-family: system-ui, sans-serif;
-            font-size: 14px;
-            line-height: 1.6;
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--fg);
             min-height: 100vh;
-            display: flex;
-            flex-direction: column;
+            transition: background 0.3s, color 0.3s;
+            line-height: 1.6;
         }
 
-        .error-page {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: flex-start;
-            justify-content: center;
-            padding: 40px 20px;
-            max-width: 600px;
+        .container {
+            max-width: 720px;
             margin: 0 auto;
-            width: 100%;
+            padding: 48px 24px;
         }
 
-        .error-icon {
-            width: 72px;
-            height: 72px;
-            margin-bottom: 24px;
-            flex-shrink: 0;
+        /* ── Header ──────────────────────── */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 48px;
         }
 
-        .error-icon img {
-            width: 100%;
-            height: 100%;
-            object-fit: contain;
-        }
-
-        .error-title {
+        .logo {
             font-size: 20px;
-            font-weight: 400;
-            color: #202124;
-            margin-bottom: 12px;
-            text-align: left;
+            font-weight: 700;
+            letter-spacing: -0.5px;
         }
 
-        .error-summary {
-            font-size: 14px;
-            color: #5f6368;
-            margin-bottom: 6px;
-            text-align: left;
-            line-height: 1.6;
-        }
+        .logo span { color: var(--accent); }
 
-        .error-details {
-            font-size: 13px;
-            color: #70757a;
-            text-align: left;
-            margin-bottom: 32px;
-            line-height: 1.6;
-        }
-
-        .error-code {
-            color: #70757a;
-            font-size: 13px;
-        }
-
-        .button-row {
-            align-self: stretch;
-            overflow: hidden;
-        }
-
-        .reload-button {
-            border: 0;
-            border-radius: 20px;
-            box-sizing: border-box;
-            color: var(--primary-button-text-color);
-            cursor: pointer;
-            float: right;
-            font-size: .875em;
-            font-family: system-ui, sans-serif;
-            margin: 0;
+        .theme-toggle {
+            background: var(--card);
+            border: 1px solid var(--border);
+            color: var(--fg);
             padding: 8px 16px;
-            background-color: var(--primary-button-bg-color);
-            transition: box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
-            user-select: none;
-        }
-
-        .reload-button:hover {
-            box-shadow: 0 1px 3px 1px rgba(66, 133, 244, 0.15),
-                        0 1px 2px 0 rgba(66, 133, 244, 0.3);
-        }
-
-        .reload-button:active {
-            background-color: #1558b0;
-        }
-
-        .toast {
-            position: fixed;
-            bottom: 40px;
-            left: 50%;
-            transform: translateX(-50%) translateY(80px);
-            background-color: #323232;
-            color: #fff;
-            padding: 12px 24px;
             border-radius: 8px;
+            cursor: pointer;
             font-size: 14px;
-            font-family: system-ui, sans-serif;
-            opacity: 0;
-            transition: all 0.3s ease;
-            pointer-events: none;
-            z-index: 100;
+            font-family: var(--font);
+            transition: all 0.2s;
         }
 
-        .toast.show {
-            opacity: 1;
-            transform: translateX(-50%) translateY(0);
+        .theme-toggle:hover {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
         }
+
+        /* ── Status Badge ─────────────────── */
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--card);
+            border: 1px solid var(--border);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .status-dot.online { background: var(--green); box-shadow: 0 0 8px var(--green); }
+        .status-dot.offline { background: var(--red); box-shadow: 0 0 8px var(--red); }
+
+        /* ── Cards ────────────────────────── */
+        .card {
+            background: var(--card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 16px;
+            transition: background 0.3s, border-color 0.3s;
+        }
+
+        .card-title {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .card-value {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .card-label {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        /* ── Grid ─────────────────────────── */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        /* ── Loading skeleton ──────────────── */
+        .skeleton {
+            background: linear-gradient(90deg, var(--card) 25%, var(--border) 50%, var(--card) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 6px;
+            height: 20px;
+            margin-bottom: 4px;
+        }
+
+        @keyframes shimmer {
+            0% { background-position: 200% 0; }
+            100% { background-position: -200% 0; }
+        }
+
+        /* ── Demo playground ──────────────── */
+        .counter-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .counter-row button {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 8px 18px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: 700;
+            transition: background 0.2s;
+            font-family: var(--font);
+        }
+
+        .counter-row button:hover { background: var(--accent-hover); }
+
+        .counter-row .count {
+            font-size: 32px;
+            font-weight: 700;
+            min-width: 40px;
+            text-align: center;
+        }
+
+        .toggle-demo {
+            display: inline-flex;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .toggle-demo button {
+            padding: 6px 14px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: var(--bg);
+            color: var(--fg);
+            cursor: pointer;
+            font-size: 13px;
+            font-family: var(--font);
+            transition: all 0.2s;
+        }
+
+        .toggle-demo button.active {
+            background: var(--accent);
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .demo-box {
+            margin-top: 12px;
+            padding: 16px;
+            background: var(--bg);
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            font-size: 14px;
+            min-height: 60px;
+        }
+
+        /* ── Footer ───────────────────────── */
+        footer {
+            margin-top: 64px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            font-size: 13px;
+            color: var(--muted);
+            text-align: center;
+        }
+
+        footer a { color: var(--accent); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+
+        /* ── Transition helpers ────────────── */
+        .fade-enter { opacity: 0; transform: translateY(8px); }
+        .fade-enter-active { opacity: 1; transform: translateY(0); transition: all 0.3s ease-out; }
     </style>
 </head>
-<body>
-    <div class="error-page">
-        <div class="error-icon">
-            <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJAAAACQAQMAAADdiHD7AAAABlBMVEUAAABTU1OoaSf/AAAAAXRSTlMAQObYZgAAAFJJREFUeF7t0cENgDAMQ9FwYgxG6WjpaIzCCAxQxVggFuDiCvlLOeRdHR9yzjncHVoq3npu+wQUrUuJHylSTmBaespJyJQoObUeyxDQb3bEm5Au81c0pSCD8HYAAAAASUVORK5CYII=" alt="Error icon">
+<body x-data="app()" x-init="init()" :class="{ dark: isDark }">
+
+    <div class="container">
+
+        <!-- ── Header ──────────────────────── -->
+        <header>
+            <div class="logo">oldhat<span>.</span>dev</div>
+            <div class="theme-toggle" @click="toggleTheme" x-text="isDark ? '☀️ Light' : '🌙 Dark'"></div>
+        </header>
+
+        <!-- ── Status ───────────────────────── -->
+        <div class="status-badge" style="margin-bottom: 32px;">
+            <span class="status-dot" :class="apiStatus === 'ok' ? 'online' : 'offline'"></span>
+            <span x-text="apiStatus === 'ok' ? 'API Online' : (apiStatus === 'loading' ? 'Checking...' : 'API Offline')"></span>
+            <span style="color: var(--muted); font-weight: 400;" x-text="lastChecked"></span>
         </div>
 
-        <h1 class="error-title">This site can't be reached</h1>
+        <!-- ── Stats Grid ──────────────────── -->
+        <div class="stats-grid">
+            <div class="card">
+                <div class="card-title">Server Status</div>
+                <template x-if="apiStatus === 'loading'">
+                    <div><div class="skeleton" style="width: 60%;"></div><div class="skeleton" style="width: 40%;"></div></div>
+                </template>
+                <template x-if="apiStatus !== 'loading'">
+                    <div>
+                        <div class="card-value" x-text="healthData?.data?.status ?? '—'"></div>
+                        <div class="card-label">Last health check</div>
+                    </div>
+                </template>
+            </div>
 
-        <p class="error-summary">
-            <strong>oldhat.dev</strong>'s DNS address could not be found. Diagnosing the problem.
-        </p>
+            <div class="card">
+                <div class="card-title">Total Requests</div>
+                <template x-if="!visitorData">
+                    <div><div class="skeleton" style="width: 50%;"></div></div>
+                </template>
+                <template x-if="visitorData">
+                    <div>
+                        <div class="card-value" x-text="visitorData?.data?.total_requests?.toLocaleString() ?? '—'"></div>
+                        <div class="card-label" x-text="visitorData?.data?.report_date ?? 'latest report'"></div>
+                    </div>
+                </template>
+            </div>
 
-        <p class="error-details">
-            <span class="error-code">DNS_PROBE_POSSIBLE</span>
-        </p>
-
-        <div class="button-row">
-            <button class="reload-button" id="reloadBtn">Reload :-)</button>
+            <div class="card">
+                <div class="card-title">Visitors Today</div>
+                <template x-if="!visitorData">
+                    <div><div class="skeleton" style="width: 40%;"></div></div>
+                </template>
+                <template x-if="visitorData">
+                    <div>
+                        <div class="card-value" x-text="visitorData?.data?.human_count?.toLocaleString() ?? '—'"></div>
+                        <div class="card-label">
+                            <span x-text="visitorData?.data?.bot_count?.toLocaleString() ?? '—'"></span> bots ·
+                            <span x-text="visitorData?.data?.unique_ips?.toLocaleString() ?? '—'"></span> unique IPs
+                        </div>
+                    </div>
+                </template>
+            </div>
         </div>
+
+        <!-- ── Alpine.js Playground ─────────── -->
+        <div class="card">
+            <div class="card-title">⛰️ Alpine.js Playground</div>
+            <p style="font-size: 14px; color: var(--muted); margin-bottom: 16px;">
+                Everything below is reactive — Alpine updates the DOM automatically when state changes.
+            </p>
+
+            <!-- Counter -->
+            <p style="font-weight: 600; font-size: 14px;">Counter</p>
+            <div class="counter-row">
+                <button @click="count--">−</button>
+                <span class="count" x-text="count" :style="{ color: count === 0 ? 'var(--muted)' : 'var(--accent)' }"></span>
+                <button @click="count++">+</button>
+                <button @click="count = 0" style="background: var(--card); color: var(--fg); font-size: 12px; font-weight: 400;">Reset</button>
+            </div>
+            <p style="font-size: 12px; color: var(--muted); margin-top: 4px;" x-text="countMessage"></p>
+
+            <!-- Tabs -->
+            <p style="font-weight: 600; font-size: 14px; margin-top: 24px;">Tabs (x-for + x-show)</p>
+            <div class="toggle-demo">
+                <template x-for="tab in tabs" :key="tab">
+                    <button @click="activeTab = tab" :class="{ active: activeTab === tab }" x-text="tab"></button>
+                </template>
+            </div>
+            <div class="demo-box" x-show="activeTab === 'About'" x-transition>
+                <p><strong>oldhat.dev</strong> — personal site of Oleg "Gad" Madara. Full-stack dev, security-minded, Linux on ARM64.</p>
+            </div>
+            <div class="demo-box" x-show="activeTab === 'Stack'" x-transition>
+                <p>Express + TypeScript + MySQL · Nginx + Cloudflare · Hermes Agent · Ubuntu 24.04 ARM64</p>
+            </div>
+            <div class="demo-box" x-show="activeTab === 'Alpine'" x-transition>
+                <p>Alpine.js v3 — 14 KB of reactive magic. No build step, just <code>&lt;script src="..."&gt;</code> and HTML attributes.</p>
+            </div>
+
+            <!-- Live bind -->
+            <p style="font-weight: 600; font-size: 14px; margin-top: 24px;">Live Bind (x-model)</p>
+            <input type="text" x-model="message" placeholder="Type something…" style="width: 100%; padding: 10px 14px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg); color: var(--fg); font-size: 14px; font-family: var(--font); margin-top: 8px;">
+            <p style="font-size: 13px; color: var(--muted); margin-top: 6px;">
+                You typed: <strong x-text="message || 'nothing yet'"></strong>
+                <span x-show="message.length > 30" style="color: var(--red);"> (that's a lot!)</span>
+            </p>
+        </div>
+
+        <!-- ── Footer ───────────────────────── -->
+        <footer>
+            <p>oldhat.dev · <a href="https://api.oldhat.dev/v1/health" target="_blank">API Health</a> · <a href="https://github.com/angelomadara" target="_blank">GitHub</a></p>
+            <p style="margin-top: 4px;">Powered by Alpine.js · Built with ❤️</p>
+        </footer>
     </div>
 
-    <div class="toast" id="toast">Checking your connection…</div>
-
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
     <script>
-        const reloadBtn = document.getElementById('reloadBtn');
-        const toast = document.getElementById('toast');
+        function app() {
+            return {
+                // ── Theme ──
+                isDark: localStorage.getItem('theme') === 'dark'
+                        || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches),
+                toggleTheme() {
+                    this.isDark = !this.isDark;
+                    localStorage.setItem('theme', this.isDark ? 'dark' : 'light');
+                },
 
-        reloadBtn.addEventListener('click', function() {
-            toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 2500);
-        });
+                // ── API Data ──
+                apiStatus: 'loading',
+                lastChecked: '',
+                healthData: null,
+                visitorData: null,
+
+                async init() {
+                    // Fetch API health
+                    try {
+                        const res = await fetch('https://oldhat.dev/api/v1/health');
+                        this.healthData = await res.json();
+                        this.apiStatus = 'ok';
+                    } catch {
+                        this.apiStatus = 'offline';
+                    }
+                    this.lastChecked = new Date().toLocaleTimeString();
+
+                    // Fetch visitor stats (latest date)
+                    try {
+                        const dateRes = await fetch('https://oldhat.dev/api/v1/statistics/visitors');
+                        this.visitorData = await dateRes.json();
+                    } catch {
+                        // No data yet today, silently ignore
+                    }
+                },
+
+                // ── Playground ──
+                count: 0,
+                tabs: ['About', 'Stack', 'Alpine'],
+                activeTab: 'About',
+                message: '',
+
+                get countMessage() {
+                    const c = this.count;
+                    if (c === 0) return 'Zero — neutral territory.';
+                    if (c < 0) return `${Math.abs(c)} below zero — in the red.`;
+                    if (c < 10) return `${c} — small and steady.`;
+                    if (c < 50) return `${c} — picking up speed.`;
+                    return `${c} — now we're talking!`;
+                }
+            }
+        }
     </script>
 </body>
 </html>
