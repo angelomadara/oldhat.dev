@@ -212,8 +212,8 @@
                 </template>
                 <template x-if="visitorData">
                     <div>
-                        <div class="card-value" x-text="visitorData?.data?.total_requests?.toLocaleString() ?? '—'"></div>
-                        <div class="card-label" x-text="visitorData?.data?.report_date ?? 'latest report'"></div>
+                        <div class="card-value" x-text="visitorData?.data?.summary?.totalRequests?.toLocaleString() ?? '—'"></div>
+                        <div class="card-label" x-text="visitorData?.data?.date ?? 'latest report'"></div>
                     </div>
                 </template>
             </div>
@@ -225,10 +225,10 @@
                 </template>
                 <template x-if="visitorData">
                     <div>
-                        <div class="card-value" x-text="visitorData?.data?.human_count?.toLocaleString() ?? '—'"></div>
+                        <div class="card-value" x-text="visitorData?.data?.summary?.humanCount?.toLocaleString() ?? '—'"></div>
                         <div class="card-label">
-                            <span x-text="visitorData?.data?.bot_count?.toLocaleString() ?? '—'"></span> bots ·
-                            <span x-text="visitorData?.data?.unique_ips?.toLocaleString() ?? '—'"></span> unique IPs
+                            <span x-text="visitorData?.data?.summary?.botCount?.toLocaleString() ?? '—'"></span> bots ·
+                            <span x-text="visitorData?.data?.summary?.uniqueIps?.toLocaleString() ?? '—'"></span> unique IPs
                         </div>
                     </div>
                 </template>
