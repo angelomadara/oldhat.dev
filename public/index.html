@@ -433,12 +433,12 @@
       },
       maskIP(ip, isBot) {
         if (!ip || isBot) return ip ?? '—';
-        // IPv4: a.b.c.d → *.*.c.d
+        // IPv4: a.b.c.d → ***.***.c.d
         const parts = ip.split('.');
-        if (parts.length === 4) return `*.*.${parts[2]}.${parts[3]}`;
+        if (parts.length === 4) return `***.***.${parts[2]}.${parts[3]}`;
         // IPv6: show last 2 groups
         const v6parts = ip.split(':');
-        if (v6parts.length >= 4) return `*.*.*.*:${v6parts.slice(-2).join(':')}`;
+        if (v6parts.length >= 4) return `***.***.***.***:${v6parts.slice(-2).join(':')}`;
         return ip;
       },
       pctHits(count) { return Math.max(3, (count / this.maxHits) * 100); },
