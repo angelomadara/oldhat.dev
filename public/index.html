@@ -161,8 +161,9 @@
       <span style="font-size:13px;color:var(--muted);">Domain:</span>
       <select x-model="selectedDomain" @change="loadReport()" style="background:var(--card);border:1px solid var(--border);color:var(--fg);padding:6px 10px;border-radius:8px;font-size:13px;font-family:var(--font);">
         <option value="">All</option>
-        <option value="oldhat.dev">oldhat.dev</option>
-        <option value="api.oldhat.dev">api.oldhat.dev</option>
+        <template x-for="d in domains" :key="d">
+          <option :value="d" x-text="d"></option>
+        </template>
       </select>
       <span style="font-size:13px;color:var(--muted);">Date:</span>
       <input type="date" x-model="selectedDate" @change="loadReport()">
@@ -388,6 +389,7 @@
       lastChecked: '',
       healthData: null,
       visitorData: null,
+      domains: [],
       selectedDate: '',
       selectedDomain: '',
       loading: false,
@@ -407,6 +409,13 @@
           this.apiStatus = 'ok';
         } catch { this.apiStatus = 'offline'; }
         this.lastChecked = new Date().toLocaleTimeString();
+
+        // Fetch available domains for filter
+        try {
+          const domRes = await fetch('https://oldhat.dev/api/v1/statistics/domains');
+          const domData = await domRes.json();
+          this.domains = domData?.data?.domains ?? [];
+        } catch { /* ignore */ }
 
         // Fetch latest report
         await this.loadReport();
