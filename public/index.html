@@ -1,364 +1,793 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>oldhat.dev · dashboard</title>
-  <meta name="description" content="Server statistics dashboard for oldhat.dev">
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
-  <script defer src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js"></script>
-  <style>
-    :root {
-      --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-      --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
-      --bg: #f8fafc;
-      --fg: #0f172a;
-      --card: #ffffff;
-      --border: #e2e8f0;
-      --muted: #64748b;
-      --accent: #3b82f6;
-      --green: #22c55e;
-      --red: #ef4444;
-      --orange: #f97316;
-    }
-    .dark {
-      --bg: #0f172a; --fg: #e2e8f0; --card: #1e293b; --border: #334155;
-      --muted: #94a3b8; --accent: #60a5fa;
-    }
-    * { box-sizing:border-box; margin:0; padding:0; }
-    body { font-family:var(--font); background:var(--bg); color:var(--fg);
-      line-height:1.5; -webkit-font-smoothing:antialiased; }
-    .container { max-width:960px; margin:0 auto; padding:16px; }
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>oldhat.dev · dashboard</title>
+    <meta
+      name="description"
+      content="Server statistics dashboard for oldhat.dev"
+    />
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"
+    ></script>
 
-    header { display:flex; justify-content:space-between; align-items:center;
-      padding:16px 0; margin-bottom:8px; }
-    .logo { font-size:22px; font-weight:700; letter-spacing:-.5px; }
-    .logo span { color:var(--accent); }
-    .theme-toggle { font-size:13px; cursor:pointer; padding:6px 14px;
-      border-radius:8px; background:var(--card); border:1px solid var(--border);
-      color:var(--fg); user-select:none; transition:background .2s; }
-    .theme-toggle:hover { background:var(--border); }
-
-    .status-bar { display:flex; justify-content:space-between; align-items:center;
-      flex-wrap:wrap; gap:8px; margin-bottom:16px; font-size:13px; }
-    .status-badge { display:flex; align-items:center; gap:6px; }
-    .status-dot { width:8px; height:8px; border-radius:50%; }
-    .status-dot.online { background:var(--green); box-shadow:0 0 4px var(--green); }
-    .status-dot.offline { background:var(--red); }
-    .date-picker { display:flex; align-items:center; gap:8px; }
-    .date-picker input[type="date"] { background:var(--card); border:1px solid var(--border);
-      color:var(--fg); padding:6px 10px; border-radius:8px; font-size:13px; font-family:var(--font); }
-    .date-picker button { background:var(--accent); color:#fff; border:none;
-      padding:6px 14px; border-radius:8px; font-size:13px; cursor:pointer;
-      font-family:var(--font); transition:opacity .2s; }
-    .date-picker button:disabled { opacity:.5; cursor:not-allowed; }
-    .date-picker button:hover:not(:disabled) { opacity:.9; }
-
-    .stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
-    @media (max-width:600px) { .stats-grid { grid-template-columns:1fr; } }
-    .card { background:var(--card); border:1px solid var(--border); border-radius:10px;
-      padding:16px; transition:border-color .2s; }
-    .card-title { font-size:11px; text-transform:uppercase; letter-spacing:.5px;
-      color:var(--muted); margin-bottom:6px; }
-    .card-value { font-size:28px; font-weight:700; line-height:1.2; }
-    .card-label { font-size:12px; color:var(--muted); margin-top:2px; }
-    .skeleton { background:var(--border); border-radius:6px; height:14px;
-      animation:pulse 1.5s ease-in-out infinite; margin:4px 0; }
-    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
-
-    .section { margin-bottom:20px; }
-    .section-header { display:flex; justify-content:space-between; align-items:center;
-      padding:12px 16px; background:var(--card); border:1px solid var(--border);
-      border-radius:10px; cursor:pointer; transition:background .2s; user-select:none; }
-    .section-header:hover { background:var(--border); }
-    .section-header .label { font-weight:600; font-size:14px; }
-    .section-header .hint { font-size:12px; color:var(--muted); }
-    .section-header .chevron { transition:transform .3s; font-size:14px; color:var(--muted); }
-    .section-header .chevron.open { transform:rotate(180deg); }
-
-    table { width:100%; border-collapse:collapse; font-size:13px; }
-    thead th { text-align:left; padding:8px 6px; border-bottom:1px solid var(--border);
-      font-weight:600; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.3px; }
-    tbody td { padding:6px; border-bottom:1px solid var(--border); vertical-align:middle; }
-    tbody tr:last-child td { border-bottom:none; }
-    tbody tr:hover { background:rgba(59,130,246,.04); }
-    .tag { display:inline-block; padding:1px 8px; border-radius:10px; font-size:11px;
-      font-weight:600; }
-    .tag.bot { background:rgba(239,68,68,.12); color:var(--red); }
-    .tag.human { background:rgba(34,197,94,.12); color:var(--green); }
-    .status-code { display:inline-block; padding:1px 8px; border-radius:6px;
-      font-size:11px; font-family:var(--mono); font-weight:600; }
-    .s2xx { background:rgba(34,197,94,.1); color:var(--green); }
-    .s3xx { background:rgba(59,130,246,.1); color:var(--accent); }
-    .s4xx { background:rgba(249,115,22,.1); color:var(--orange); }
-    .s5xx { background:rgba(239,68,68,.1); color:var(--red); }
-    .cat { display:inline-block; padding:1px 8px; border-radius:6px; font-size:11px;
-      font-family:var(--mono); font-weight:500; background:var(--border); }
-    .cat.git { background:rgba(34,197,94,.1); color:var(--green); }
-    .cat.env { background:rgba(249,115,22,.1); color:var(--orange); }
-    .cat.wordpress { background:rgba(59,130,246,.1); color:var(--accent); }
-    .cat.admin_scan { background:rgba(239,68,68,.1); color:var(--red); }
-    .cat.sqli { background:rgba(168,85,247,.1); color:#a855f7; }
-    .cat.config_leak { background:rgba(236,72,153,.1); color:#ec4899; }
-
-    .threat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(100px,1fr)); gap:8px; }
-    .threat-item { background:var(--card); border:1px solid var(--border);
-      border-radius:8px; padding:10px; text-align:center; }
-    .threat-item .count { display:block; font-size:18px; font-weight:700; margin-top:4px; }
-
-    .hour-bar { display:flex; align-items:center; gap:8px; padding:3px 0; }
-    .hour-label { width:24px; font-size:11px; font-family:var(--mono); color:var(--muted);
-      text-align:right; flex-shrink:0; }
-    .bar-track { flex:1; height:16px; background:var(--border); border-radius:8px;
-      overflow:hidden; display:flex; }
-    .bar-fill { height:100%; transition:width .3s; border-radius:8px; }
-    .bar-fill.hits { background:var(--accent); opacity:.8; }
-    .bar-fill.bots { background:var(--red); opacity:.6; }
-    .bar-count { width:34px; font-size:11px; font-family:var(--mono); color:var(--muted);
-      text-align:right; flex-shrink:0; }
-
-    footer { text-align:center; padding:24px 0; font-size:13px; color:var(--muted); }
-    footer a { color:var(--accent); text-decoration:none; }
-    footer a:hover { text-decoration:underline; }
-  </style>
-</head>
-<body x-data="app()" x-init="init()" :class="{ dark: isDark }">
-<div class="container">
-
-  <!-- ── Header ──────────── -->
-  <header>
-    <div class="logo">oldhat<span>.</span>dev</div>
-    <div class="theme-toggle" @click="toggleTheme" x-text="isDark ? '☀️ Light' : '🌙 Dark'"></div>
-  </header>
-
-  <!-- ── Status Bar + Date ── -->
-  <div class="status-bar">
-    <div class="status-badge">
-      <span class="status-dot" :class="apiStatus === 'ok' ? 'online' : 'offline'"></span>
-      <span x-text="apiStatus === 'ok' ? 'API Online' : (apiStatus === 'loading' ? 'Checking...' : 'API Offline')"></span>
-      <span style="color:var(--muted);font-weight:400;" x-text="lastChecked"></span>
-    </div>
-    <div class="date-picker">
-      <span style="font-size:13px;color:var(--muted);">Date:</span>
-      <input type="date" x-model="selectedDate" @change="loadDay()">
-      <button hx-get="/api/v1/statistics/html/summary" hx-target="#stats-grid" hx-swap="outerHTML"
-              hx-include="#date-param" @click="swapSections()">Refresh</button>
-      <input type="hidden" id="date-param" name="date" :value="selectedDate">
-    </div>
-  </div>
-
-  <!-- ── Summary Cards (htmx-loaded) ── -->
-  <div id="stats-grid"
-       hx-get="/api/v1/statistics/html/summary"
-       hx-trigger="load"
-       hx-swap="outerHTML">
-    <div class="stats-grid">
-      <div class="card"><div class="card-title">Total Requests</div><div class="skeleton" style="width:60%"></div></div>
-      <div class="card"><div class="card-title">Humans</div><div class="skeleton" style="width:40%"></div></div>
-      <div class="card"><div class="card-title">Bots</div><div class="skeleton" style="width:40%"></div></div>
-    </div>
-  </div>
-
-  <!-- ── Threat Intelligence ── -->
-  <div class="section">
-    <div class="section-header" @click="openSection('threat')">
-      <div><span class="label">🛡️ Threat Intelligence</span></div>
-      <span class="chevron" x-text="openSections.threat ? '▲' : '▼'"></span>
-    </div>
-    <template x-if="openSections.threat">
-    <div class="section-body" style="margin-top:8px;">
-      <div id="threat-grid" class="threat-grid"
-           hx-get="/api/v1/statistics/html/status"
-           hx-trigger="load"
-           hx-swap="innerHTML"
-           hx-include="#date-param">
-        <div class="skeleton" style="height:60px;width:100%"></div>
-      </div>
-    </div>
-    </template>
-  </div>
-
-  <!-- ── Collapsible Sections ── -->
-
-  <!-- Top IPs -->
-  <div class="section">
-    <div class="section-header" @click="openSection('topIps')">
-      <div><span class="label">🌐 Top IPs</span></div>
-      <span class="chevron" x-text="openSections.topIps ? '▲' : '▼'"></span>
-    </div>
-    <template x-if="openSections.topIps">
-    <div class="section-body" style="margin-top:8px;">
-      <div class="card" style="overflow-x:auto;padding:12px;">
-        <div id="top-ips-table"
-             hx-get="/api/v1/statistics/html/top-ips"
-             hx-trigger="load"
-             hx-swap="innerHTML"
-             hx-include="#date-param">
-          <div class="skeleton" style="height:120px"></div>
-        </div>
-      </div>
-    </div>
-    </template>
-  </div>
-
-  <!-- Bot Breakdown -->
-  <div class="section">
-    <div class="section-header" @click="openSection('bots')">
-      <div><span class="label">🤖 Bot Breakdown</span></div>
-      <span class="chevron" x-text="openSections.bots ? '▲' : '▼'"></span>
-    </div>
-    <template x-if="openSections.bots">
-    <div class="section-body" style="margin-top:8px;">
-      <div class="card" style="overflow-x:auto;padding:12px;">
-        <div id="bots-table"
-             hx-get="/api/v1/statistics/html/bots"
-             hx-trigger="load"
-             hx-swap="innerHTML"
-             hx-include="#date-param">
-          <div class="skeleton" style="height:80px"></div>
-        </div>
-      </div>
-    </div>
-    </template>
-  </div>
-
-  <!-- Paths -->
-  <div class="section">
-    <div class="section-header" @click="openSection('paths')">
-      <div><span class="label">📁 Path Activity</span></div>
-      <span class="chevron" x-text="openSections.paths ? '▲' : '▼'"></span>
-    </div>
-    <template x-if="openSections.paths">
-    <div class="section-body" style="margin-top:8px;">
-      <div class="card" style="overflow-x:auto;padding:12px;">
-        <div id="paths-table"
-             hx-get="/api/v1/statistics/html/paths"
-             hx-trigger="load"
-             hx-swap="innerHTML"
-             hx-include="#date-param">
-          <div class="skeleton" style="height:200px"></div>
-        </div>
-      </div>
-    </div>
-    </template>
-  </div>
-
-  <!-- Status Codes -->
-  <div class="section">
-    <div class="section-header" @click="openSection('status')">
-      <div><span class="label">📊 Status Code Distribution</span></div>
-      <span class="chevron" x-text="openSections.status ? '▲' : '▼'"></span>
-    </div>
-    <template x-if="openSections.status">
-    <div class="section-body" style="margin-top:8px;">
-      <div class="card">
-        <div id="status-grid" class="threat-grid"
-             hx-get="/api/v1/statistics/html/status"
-             hx-trigger="load"
-             hx-swap="innerHTML"
-             hx-include="#date-param">
-          <div class="skeleton" style="height:60px"></div>
-        </div>
-      </div>
-    </div>
-    </template>
-  </div>
-
-  <!-- Hourly Activity -->
-  <div class="section">
-    <div class="section-header" @click="openSection('hourly')">
-      <div><span class="label">⏰ Hourly Activity</span></div>
-      <span class="chevron" x-text="openSections.hourly ? '▲' : '▼'"></span>
-    </div>
-    <template x-if="openSections.hourly">
-    <div class="section-body" style="margin-top:8px;">
-      <div class="card">
-        <div id="hourly-bars"
-             hx-get="/api/v1/statistics/html/hourly"
-             hx-trigger="load"
-             hx-swap="innerHTML"
-             hx-include="#date-param">
-          <div class="skeleton" style="height:200px"></div>
-        </div>
-        <div style="display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--muted);justify-content:center;">
-          <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--accent);opacity:.8;"></span> Hits</span>
-          <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--red);opacity:.6;"></span> Bots</span>
-        </div>
-      </div>
-    </div>
-    </template>
-  </div>
-
-  <footer>
-    <p>oldhat.dev · <a href="https://api.oldhat.dev/v1/health" target="_blank">API Health</a> · <a href="https://github.com/angelomadara" target="_blank">GitHub</a></p>
-  </footer>
-</div>
-
-<script>
-function app() {
-  return {
-    // ── Theme ──
-    isDark: localStorage.getItem('theme') === 'dark'
-      || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches),
-    toggleTheme() {
-      this.isDark = !this.isDark;
-      localStorage.setItem('theme', this.isDark ? 'dark' : 'light');
-    },
-
-    // ── State ──
-    apiStatus: 'loading',
-    lastChecked: '',
-    healthData: null,
-    selectedDate: '',
-    openSections: { topIps: false, bots: false, paths: false, status: false, hourly: true, threat: false },
-
-    // ── Init ──
-    async init() {
-      const d = new Date();
-      this.selectedDate = d.toISOString().slice(0, 10);
-      try {
-        const res = await fetch('https://oldhat.dev/api/v1/health');
-        this.healthData = await res.json();
-        this.apiStatus = 'ok';
-      } catch { this.apiStatus = 'offline'; }
-      this.lastChecked = new Date().toLocaleTimeString();
-    },
-
-    // ── Section toggle ──
-    openSection(name) {
-      this.openSections[name] = !this.openSections[name];
-    },
-
-    // ── Date change → reload all htmx sections ──
-    loadDay() {
-      // htmx will pick up the new date from #date-param on next interaction
-      // Trigger a reload of the summary cards
-      htmx.ajax('GET', '/api/v1/statistics/html/summary', {
-        target: '#stats-grid',
-        swap: 'outerHTML',
-        values: { date: this.selectedDate },
-      });
-    },
-
-    // ── Refresh button: reload all sections ──
-    swapSections() {
-      const date = this.selectedDate;
-      const sections = [
-        { url: '/api/v1/statistics/html/summary', target: '#stats-grid', swap: 'outerHTML' },
-        { url: '/api/v1/statistics/html/top-ips', target: '#top-ips-table', swap: 'innerHTML' },
-        { url: '/api/v1/statistics/html/bots', target: '#bots-table', swap: 'innerHTML' },
-        { url: '/api/v1/statistics/html/paths', target: '#paths-table', swap: 'innerHTML' },
-        { url: '/api/v1/statistics/html/status', target: '#status-grid', swap: 'innerHTML' },
-        { url: '/api/v1/statistics/html/hourly', target: '#hourly-bars', swap: 'innerHTML' },
-      ];
-      // Also reload threat grid if visible
-      sections.push({ url: '/api/v1/statistics/html/status', target: '#threat-grid', swap: 'innerHTML' });
-      for (const s of sections) {
-        htmx.ajax('GET', s.url, { target: s.target, swap: s.swap, values: { date } });
+    <style>
+      :root {
+        --font:
+          system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+        --mono:
+          "SF Mono", "Fira Code", "Cascadia Code", Consolas, monospace;
+        --bg: #f8fafc;
+        --fg: #0f172a;
+        --card: #ffffff;
+        --border: #e2e8f0;
+        --muted: #64748b;
+        --accent: #3b82f6;
+        --green: #22c55e;
+        --red: #ef4444;
+        --orange: #f97316;
       }
-    },
-  };
-}
-</script>
-</body>
+      .dark {
+        --bg: #0f172a;
+        --fg: #e2e8f0;
+        --card: #1e293b;
+        --border: #334155;
+        --muted: #94a3b8;
+        --accent: #60a5fa;
+      }
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        font-family: var(--font);
+        background: var(--bg);
+        color: var(--fg);
+        line-height: 1.5;
+        -webkit-font-smoothing: antialiased;
+      }
+      .container {
+        max-width: 960px;
+        margin: 0 auto;
+        padding: 16px;
+      }
+
+      header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 16px 0;
+        margin-bottom: 8px;
+      }
+      .logo {
+        font-size: 22px;
+        font-weight: 700;
+        letter-spacing: -0.5px;
+      }
+      .logo span {
+        color: var(--accent);
+      }
+      .theme-toggle {
+        font-size: 13px;
+        cursor: pointer;
+        padding: 6px 14px;
+        border-radius: 8px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        color: var(--fg);
+        user-select: none;
+        transition: background 0.2s;
+      }
+      .theme-toggle:hover {
+        background: var(--border);
+      }
+
+      .status-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 16px;
+        font-size: 13px;
+      }
+      .status-badge {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+      }
+      .status-dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+      }
+      .status-dot.online {
+        background: var(--green);
+        box-shadow: 0 0 4px var(--green);
+      }
+      .status-dot.offline {
+        background: var(--red);
+      }
+      .date-picker {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .date-picker input[type="date"] {
+        background: var(--card);
+        border: 1px solid var(--border);
+        color: var(--fg);
+        padding: 6px 10px;
+        border-radius: 8px;
+        font-size: 13px;
+        font-family: var(--font);
+      }
+      .date-picker button {
+        background: var(--accent);
+        color: #fff;
+        border: none;
+        padding: 6px 14px;
+        border-radius: 8px;
+        font-size: 13px;
+        cursor: pointer;
+        font-family: var(--font);
+        transition: opacity 0.2s;
+      }
+      .date-picker button:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+      }
+      .date-picker button:hover:not(:disabled) {
+        opacity: 0.9;
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+        margin-bottom: 20px;
+      }
+      @media (max-width: 600px) {
+        .stats-grid {
+          grid-template-columns: 1fr;
+        }
+      }
+      .card {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        padding: 16px;
+        transition: border-color 0.2s;
+      }
+      .card-title {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+      .card-value {
+        font-size: 28px;
+        font-weight: 700;
+        line-height: 1.2;
+      }
+      .card-label {
+        font-size: 12px;
+        color: var(--muted);
+        margin-top: 2px;
+      }
+      .skeleton {
+        background: var(--border);
+        border-radius: 6px;
+        height: 14px;
+        animation: pulse 1.5s ease-in-out infinite;
+        margin: 4px 0;
+      }
+      @keyframes pulse {
+        0%,
+        100% {
+          opacity: 1;
+        }
+        50% {
+          opacity: 0.4;
+        }
+      }
+
+      .section {
+        margin-bottom: 20px;
+      }
+      .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 12px 16px;
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background 0.2s;
+        user-select: none;
+      }
+      .section-header:hover {
+        background: var(--border);
+      }
+      .section-header .label {
+        font-weight: 600;
+        font-size: 14px;
+      }
+      .section-header .hint {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .section-header .chevron {
+        transition: transform 0.3s;
+        font-size: 14px;
+        color: var(--muted);
+      }
+      .section-header .chevron.open {
+        transform: rotate(180deg);
+      }
+
+      table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 13px;
+      }
+      thead th {
+        text-align: left;
+        padding: 8px 6px;
+        border-bottom: 1px solid var(--border);
+        font-weight: 600;
+        color: var(--muted);
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+      tbody td {
+        padding: 6px;
+        border-bottom: 1px solid var(--border);
+        vertical-align: middle;
+      }
+      tbody tr:last-child td {
+        border-bottom: none;
+      }
+      tbody tr:hover {
+        background: rgba(59, 130, 246, 0.04);
+      }
+      .tag {
+        display: inline-block;
+        padding: 1px 8px;
+        border-radius: 10px;
+        font-size: 11px;
+        font-weight: 600;
+      }
+      .tag.bot {
+        background: rgba(239, 68, 68, 0.12);
+        color: var(--red);
+      }
+      .tag.human {
+        background: rgba(34, 197, 94, 0.12);
+        color: var(--green);
+      }
+      .status-code {
+        display: inline-block;
+        padding: 1px 8px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-family: var(--mono);
+        font-weight: 600;
+      }
+      .s2xx {
+        background: rgba(34, 197, 94, 0.1);
+        color: var(--green);
+      }
+      .s3xx {
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--accent);
+      }
+      .s4xx {
+        background: rgba(249, 115, 22, 0.1);
+        color: var(--orange);
+      }
+      .s5xx {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--red);
+      }
+      .cat {
+        display: inline-block;
+        padding: 1px 8px;
+        border-radius: 6px;
+        font-size: 11px;
+        font-family: var(--mono);
+        font-weight: 500;
+        background: var(--border);
+      }
+      .cat.git {
+        background: rgba(34, 197, 94, 0.1);
+        color: var(--green);
+      }
+      .cat.env {
+        background: rgba(249, 115, 22, 0.1);
+        color: var(--orange);
+      }
+      .cat.wordpress {
+        background: rgba(59, 130, 246, 0.1);
+        color: var(--accent);
+      }
+      .cat.admin_scan {
+        background: rgba(239, 68, 68, 0.1);
+        color: var(--red);
+      }
+      .cat.sqli {
+        background: rgba(168, 85, 247, 0.1);
+        color: #a855f7;
+      }
+      .cat.config_leak {
+        background: rgba(236, 72, 153, 0.1);
+        color: #ec4899;
+      }
+
+      .threat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+        gap: 8px;
+      }
+      .threat-item {
+        background: var(--card);
+        border: 1px solid var(--border);
+        border-radius: 8px;
+        padding: 10px;
+        text-align: center;
+      }
+      .threat-item .count {
+        display: block;
+        font-size: 18px;
+        font-weight: 700;
+        margin-top: 4px;
+      }
+
+      .hour-bar {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 3px 0;
+      }
+      .hour-label {
+        width: 24px;
+        font-size: 11px;
+        font-family: var(--mono);
+        color: var(--muted);
+        text-align: right;
+        flex-shrink: 0;
+      }
+      .bar-track {
+        flex: 1;
+        height: 16px;
+        background: var(--border);
+        border-radius: 8px;
+        overflow: hidden;
+        display: flex;
+      }
+      .bar-fill {
+        height: 100%;
+        transition: width 0.3s;
+        border-radius: 8px;
+      }
+      .bar-fill.hits {
+        background: var(--accent);
+        opacity: 0.8;
+      }
+      .bar-fill.bots {
+        background: var(--red);
+        opacity: 0.6;
+      }
+      .bar-count {
+        width: 34px;
+        font-size: 11px;
+        font-family: var(--mono);
+        color: var(--muted);
+        text-align: right;
+        flex-shrink: 0;
+      }
+
+      footer {
+        text-align: center;
+        padding: 24px 0;
+        font-size: 13px;
+        color: var(--muted);
+      }
+      footer a {
+        color: var(--accent);
+        text-decoration: none;
+      }
+      footer a:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body x-data="app()" x-init="init()" :class="{ dark: isDark }">
+    <div class="container">
+      <!-- ── Header ──────────── -->
+      <header>
+        <div class="logo">oldhat<span>.</span>dev</div>
+        <div
+          class="theme-toggle"
+          @click="toggleTheme"
+          x-text="isDark ? '☀️ Light' : '🌙 Dark'"
+        ></div>
+      </header>
+
+      <!-- ── Status Bar + Date ── -->
+      <div class="status-bar">
+        <div class="status-badge">
+          <span
+            class="status-dot"
+            :class="apiStatus === 'ok' ? 'online' : 'offline'"
+          ></span>
+          <span
+            x-text="apiStatus === 'ok' ? 'API Online' : (apiStatus === 'loading' ? 'Checking...' : 'API Offline')"
+          ></span>
+          <span
+            style="color: var(--muted); font-weight: 400"
+            x-text="lastChecked"
+          ></span>
+        </div>
+        <div class="date-picker">
+          <span style="font-size: 13px; color: var(--muted)"
+            >Date:</span
+          >
+          <input
+            type="date"
+            x-model="selectedDate"
+            @change="loadDay()"
+          />
+          <button @click="swapSections()">
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      <!-- ── Summary Cards ── -->
+      <div id="stats-grid">
+        <div class="stats-grid">
+          <div class="card">
+            <div class="card-title">Total Requests</div>
+            <div class="skeleton" style="width: 60%"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Humans</div>
+            <div class="skeleton" style="width: 40%"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Bots</div>
+            <div class="skeleton" style="width: 40%"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Threat Intelligence ── -->
+      <div class="section">
+        <div class="section-header" @click="openSection('threat')">
+          <div><span class="label">🛡️ Threat Intelligence</span></div>
+          <span
+            class="chevron"
+            x-text="openSections.threat ? '▲' : '▼'"
+          ></span>
+        </div>
+        <template x-if="openSections.threat">
+          <div class="section-body" style="margin-top: 8px">
+            <div
+              id="threat-grid"
+              class="threat-grid"
+            >
+              <div
+                class="skeleton"
+                style="height: 60px; width: 100%"
+              ></div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- ── Collapsible Sections ── -->
+
+      <!-- Top IPs -->
+      <div class="section">
+        <div class="section-header" @click="openSection('topIps')">
+          <div><span class="label">🌐 Top IPs</span></div>
+          <span
+            class="chevron"
+            x-text="openSections.topIps ? '▲' : '▼'"
+          ></span>
+        </div>
+        <template x-if="openSections.topIps">
+          <div class="section-body" style="margin-top: 8px">
+            <div
+              class="card"
+              style="overflow-x: auto; padding: 12px"
+            >
+              <div id="top-ips-table">
+                <div
+                  class="skeleton"
+                  style="height: 120px"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- Bot Breakdown -->
+      <div class="section">
+        <div class="section-header" @click="openSection('bots')">
+          <div><span class="label">🤖 Bot Breakdown</span></div>
+          <span
+            class="chevron"
+            x-text="openSections.bots ? '▲' : '▼'"
+          ></span>
+        </div>
+        <template x-if="openSections.bots">
+          <div class="section-body" style="margin-top: 8px">
+            <div
+              class="card"
+              style="overflow-x: auto; padding: 12px"
+            >
+              <div id="bots-table">
+                <div
+                  class="skeleton"
+                  style="height: 80px"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- Paths -->
+      <div class="section">
+        <div class="section-header" @click="openSection('paths')">
+          <div><span class="label">📁 Path Activity</span></div>
+          <span
+            class="chevron"
+            x-text="openSections.paths ? '▲' : '▼'"
+          ></span>
+        </div>
+        <template x-if="openSections.paths">
+          <div class="section-body" style="margin-top: 8px">
+            <div
+              class="card"
+              style="overflow-x: auto; padding: 12px"
+            >
+              <div id="paths-table">
+                <div
+                  class="skeleton"
+                  style="height: 200px"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- Status Codes -->
+      <div class="section">
+        <div class="section-header" @click="openSection('status')">
+          <div>
+            <span class="label">📊 Status Code Distribution</span>
+          </div>
+          <span
+            class="chevron"
+            x-text="openSections.status ? '▲' : '▼'"
+          ></span>
+        </div>
+        <template x-if="openSections.status">
+          <div class="section-body" style="margin-top: 8px">
+            <div class="card">
+              <div
+                id="status-grid"
+                class="threat-grid"
+              >
+                <div
+                  class="skeleton"
+                  style="height: 60px"
+                ></div>
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- Hourly Activity -->
+      <div class="section">
+        <div class="section-header" @click="openSection('hourly')">
+          <div><span class="label">⏰ Hourly Activity</span></div>
+          <span
+            class="chevron"
+            x-text="openSections.hourly ? '▲' : '▼'"
+          ></span>
+        </div>
+        <template x-if="openSections.hourly">
+          <div class="section-body" style="margin-top: 8px">
+            <div class="card">
+              <div id="hourly-bars">
+                <div
+                  class="skeleton"
+                  style="height: 200px"
+                ></div>
+              </div>
+              <div
+                style="
+                  display: flex;
+                  gap: 16px;
+                  margin-top: 10px;
+                  font-size: 12px;
+                  color: var(--muted);
+                  justify-content: center;
+                "
+              >
+                <span
+                  ><span
+                    style="
+                      display: inline-block;
+                      width: 10px;
+                      height: 10px;
+                      border-radius: 2px;
+                      background: var(--accent);
+                      opacity: 0.8;
+                    "
+                  ></span>
+                  Hits</span
+                >
+                <span
+                  ><span
+                    style="
+                      display: inline-block;
+                      width: 10px;
+                      height: 10px;
+                      border-radius: 2px;
+                      background: var(--red);
+                      opacity: 0.6;
+                    "
+                  ></span>
+                  Bots</span
+                >
+              </div>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <footer>
+        <p>
+          oldhat.dev ·
+          <a href="https://api.oldhat.dev/v1/health" target="_blank"
+            >API Health</a
+          >
+          ·
+          <a href="https://github.com/angelomadara" target="_blank"
+            >GitHub</a
+          >
+        </p>
+      </footer>
+    </div>
+
+    <script>
+      function app() {
+        return {
+          // ── Theme ──
+          isDark:
+            localStorage.getItem("theme") === "dark" ||
+            (!localStorage.getItem("theme") &&
+              window.matchMedia("(prefers-color-scheme: dark)")
+                .matches),
+          toggleTheme() {
+            this.isDark = !this.isDark;
+            localStorage.setItem(
+              "theme",
+              this.isDark ? "dark" : "light",
+            );
+          },
+
+          // ── State ──
+          apiStatus: "loading",
+          lastChecked: "",
+          healthData: null,
+          selectedDate: "",
+          openSections: {
+            topIps: false,
+            bots: false,
+            paths: false,
+            status: false,
+            hourly: true,
+            threat: false,
+          },
+
+          // ── Init ──
+          async init() {
+            const d = new Date();
+            this.selectedDate = d.toISOString().slice(0, 10);
+            try {
+              const res = await fetch(
+                "https://oldhat.dev/api/v1/health",
+              );
+              this.healthData = await res.json();
+              this.apiStatus = "ok";
+            } catch {
+              this.apiStatus = "offline";
+            }
+            this.lastChecked = new Date().toLocaleTimeString();
+            // Load stats grid and any sections open by default
+            await this.swapSections();
+          },
+
+          // ── Section toggle → fetch data when opening ──
+          async openSection(name) {
+            this.openSections[name] = !this.openSections[name];
+            if (this.openSections[name]) {
+              const map = {
+                topIps: { url: "/api/v1/statistics/html/top-ips", target: "#top-ips-table" },
+                bots: { url: "/api/v1/statistics/html/bots", target: "#bots-table" },
+                paths: { url: "/api/v1/statistics/html/paths", target: "#paths-table" },
+                status: { url: "/api/v1/statistics/html/status", target: "#status-grid" },
+                hourly: { url: "/api/v1/statistics/html/hourly", target: "#hourly-bars" },
+                threat: { url: "/api/v1/statistics/html/status", target: "#threat-grid" },
+              };
+              const s = map[name];
+              if (s) await this.fetchAndSwap(s.url, s.target);
+            }
+          },
+
+          // ── Date change → reload all visible sections ──
+          loadDay() {
+            this.swapSections();
+          },
+
+          // ── Fetch HTML and swap into DOM ──
+          async fetchAndSwap(url, target, swap = "innerHTML") {
+            const date = this.selectedDate;
+            try {
+              const res = await fetch(`${url}?date=${date}`);
+              if (!res.ok) throw new Error(res.status);
+              const html = await res.text();
+              const el = document.querySelector(target);
+              if (!el) return;
+              if (swap === "outerHTML") {
+                el.outerHTML = html;
+              } else {
+                el.innerHTML = html;
+              }
+            } catch (e) {
+              console.warn("Failed to load", target, e);
+            }
+          },
+
+          // ── Refresh / date change: reload all visible sections ──
+          async swapSections() {
+            await this.fetchAndSwap(
+              "/api/v1/statistics/html/summary",
+              "#stats-grid",
+              "outerHTML",
+            );
+            const loads = [];
+            if (this.openSections.topIps)
+              loads.push(this.fetchAndSwap("/api/v1/statistics/html/top-ips", "#top-ips-table"));
+            if (this.openSections.bots)
+              loads.push(this.fetchAndSwap("/api/v1/statistics/html/bots", "#bots-table"));
+            if (this.openSections.paths)
+              loads.push(this.fetchAndSwap("/api/v1/statistics/html/paths", "#paths-table"));
+            if (this.openSections.status)
+              loads.push(this.fetchAndSwap("/api/v1/statistics/html/status", "#status-grid"));
+            if (this.openSections.threat)
+              loads.push(this.fetchAndSwap("/api/v1/statistics/html/status", "#threat-grid"));
+            if (this.openSections.hourly)
+              loads.push(this.fetchAndSwap("/api/v1/statistics/html/hourly", "#hourly-bars"));
+            await Promise.all(loads);
+          },
+        };
+      }
+    </script>
+  </body>
 </html>
