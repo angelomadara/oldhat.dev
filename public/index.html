@@ -248,7 +248,7 @@
             <template x-for="(ip, i) in visitorData?.data?.topIps" :key="ip.ip">
               <tr>
                 <td style="color:var(--muted)" x-text="i+1"></td>
-                <td style="font-family:monospace;font-size:12px;" x-text="ip.ip"></td>
+                <td style="font-family:monospace;font-size:12px;" x-text="maskIP(ip.ip, ip.isBot)" :title="ip.isBot ? ip.ip : ''"></td>
                 <td x-text="ip.countryCode ?? '—'" :title="ip.countryName ?? ''"></td>
                 <td style="font-weight:600" x-text="ip.hitCount?.toLocaleString()"></td>
                 <td><span class="tag" :class="ip.isBot ? 'bot' : 'human'" x-text="ip.isBot ? 'Bot' : 'Human'"></span></td>
@@ -430,6 +430,16 @@
         if (code < 300) return 's2xx';
         if (code < 500) return 's4xx';
         return 's5xx';
+      },
+      maskIP(ip, isBot) {
+        if (!ip || isBot) return ip ?? '—';
+        // IPv4: a.b.c.d → *.*.c.d
+        const parts = ip.split('.');
+        if (parts.length === 4) return `*.*.${parts[2]}.${parts[3]}`;
+        // IPv6: show last 2 groups
+        const v6parts = ip.split(':');
+        if (v6parts.length >= 4) return `*.*.*.*:${v6parts.slice(-2).join(':')}`;
+        return ip;
       },
       pctHits(count) { return Math.max(3, (count / this.maxHits) * 100); },
       pctBots(count) { return Math.max(1, (count / this.maxHits) * 100); },
