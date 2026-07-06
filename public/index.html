@@ -242,7 +242,7 @@
       <div class="card" style="overflow-x:auto;padding:12px;">
         <table>
           <thead>
-            <tr><th>#</th><th>IP</th><th>Country</th><th>Hits</th><th>Type</th><th>Bot Name</th><th>Top Path</th><th>Top Status</th></tr>
+          <tr><th>#</th><th>IP</th><th>Country</th><th>Hits</th><th>Type</th><th>Bot Name</th><th>Top Status</th></tr>
           </thead>
           <tbody>
             <template x-for="(ip, i) in visitorData?.data?.topIps" :key="ip.ip">
@@ -253,7 +253,6 @@
                 <td style="font-weight:600" x-text="ip.hitCount?.toLocaleString()"></td>
                 <td><span class="tag" :class="ip.isBot ? 'bot' : 'human'" x-text="ip.isBot ? 'Bot' : 'Human'"></span></td>
                 <td x-text="ip.botName ?? '—'" style="font-size:12px;"></td>
-                <td style="font-size:12px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" x-text="ip.topPath ?? '—'"></td>
                 <td><span class="status-code" :class="statusClass(ip.topStatus)" x-text="ip.topStatus ?? '—'"></span></td>
               </tr>
             </template>
