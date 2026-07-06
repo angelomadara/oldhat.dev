@@ -3,66 +3,69 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>oldhat.dev — Traffic Dashboard</title>
+  <title>oldhat.dev · dashboard</title>
+  <meta name="description" content="Server statistics dashboard for oldhat.dev">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
+  <script defer src="https://unpkg.com/htmx.org@2.0.4/dist/htmx.min.js"></script>
   <style>
     :root {
-      --bg: #ffffff; --fg: #1a1a2e; --muted: #6b7280;
-      --card: #f3f4f6; --border: #e5e7eb; --accent: #3b82f6;
-      --accent-hover: #2563eb; --green: #10b981; --red: #ef4444;
-      --orange: #f59e0b; --purple: #8b5cf6; --font: system-ui,-apple-system,'Segoe UI',sans-serif;
+      --font: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+      --mono: 'SF Mono', 'Fira Code', 'Cascadia Code', Consolas, monospace;
+      --bg: #f8fafc;
+      --fg: #0f172a;
+      --card: #ffffff;
+      --border: #e2e8f0;
+      --muted: #64748b;
+      --accent: #3b82f6;
+      --green: #22c55e;
+      --red: #ef4444;
+      --orange: #f97316;
     }
-    .dark { --bg: #0f172a; --fg: #e2e8f0; --muted: #94a3b8;
-      --card: #1e293b; --border: #334155; --accent: #60a5fa;
-      --accent-hover: #3b82f6; --green: #34d399; --red: #f87171;
-      --orange: #fbbf24; --purple: #a78bfa; }
-    * { margin:0; padding:0; box-sizing:border-box; }
+    .dark {
+      --bg: #0f172a; --fg: #e2e8f0; --card: #1e293b; --border: #334155;
+      --muted: #94a3b8; --accent: #60a5fa;
+    }
+    * { box-sizing:border-box; margin:0; padding:0; }
     body { font-family:var(--font); background:var(--bg); color:var(--fg);
-      min-height:100vh; transition:background .3s,color .3s; line-height:1.6; }
-    .container { max-width:960px; margin:0 auto; padding:40px 20px; }
-    header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
-    .logo { font-size:20px; font-weight:700; letter-spacing:-.5px; }
+      line-height:1.5; -webkit-font-smoothing:antialiased; }
+    .container { max-width:960px; margin:0 auto; padding:16px; }
+
+    header { display:flex; justify-content:space-between; align-items:center;
+      padding:16px 0; margin-bottom:8px; }
+    .logo { font-size:22px; font-weight:700; letter-spacing:-.5px; }
     .logo span { color:var(--accent); }
-    .theme-toggle { background:var(--card); border:1px solid var(--border); color:var(--fg);
-      padding:8px 16px; border-radius:8px; cursor:pointer; font-size:14px;
-      font-family:var(--font); transition:all .2s; }
-    .theme-toggle:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
-    .status-bar { display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:24px; }
-    .status-badge { display:inline-flex; align-items:center; gap:8px; background:var(--card);
-      border:1px solid var(--border); padding:6px 16px; border-radius:20px; font-size:13px; font-weight:500; }
-    .status-dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
-    .status-dot.online { background:var(--green); box-shadow:0 0 8px var(--green); }
-    .status-dot.offline { background:var(--red); box-shadow:0 0 8px var(--red); }
-    .date-picker { display:flex; align-items:center; gap:8px; margin-left:auto; }
-    .date-picker input { background:var(--card); border:1px solid var(--border); color:var(--fg);
-      padding:6px 12px; border-radius:8px; font-size:13px; font-family:var(--font); }
-    .date-picker button { background:var(--accent); color:#fff; border:none; padding:6px 14px;
-      border-radius:8px; cursor:pointer; font-size:13px; font-family:var(--font);
-      transition:background .2s; }
-    .date-picker button:hover { background:var(--accent-hover); }
+    .theme-toggle { font-size:13px; cursor:pointer; padding:6px 14px;
+      border-radius:8px; background:var(--card); border:1px solid var(--border);
+      color:var(--fg); user-select:none; transition:background .2s; }
+    .theme-toggle:hover { background:var(--border); }
+
+    .status-bar { display:flex; justify-content:space-between; align-items:center;
+      flex-wrap:wrap; gap:8px; margin-bottom:16px; font-size:13px; }
+    .status-badge { display:flex; align-items:center; gap:6px; }
+    .status-dot { width:8px; height:8px; border-radius:50%; }
+    .status-dot.online { background:var(--green); box-shadow:0 0 4px var(--green); }
+    .status-dot.offline { background:var(--red); }
+    .date-picker { display:flex; align-items:center; gap:8px; }
+    .date-picker input[type="date"] { background:var(--card); border:1px solid var(--border);
+      color:var(--fg); padding:6px 10px; border-radius:8px; font-size:13px; font-family:var(--font); }
+    .date-picker button { background:var(--accent); color:#fff; border:none;
+      padding:6px 14px; border-radius:8px; font-size:13px; cursor:pointer;
+      font-family:var(--font); transition:opacity .2s; }
     .date-picker button:disabled { opacity:.5; cursor:not-allowed; }
+    .date-picker button:hover:not(:disabled) { opacity:.9; }
 
-    /* Cards */
-    .card { background:var(--card); border:1px solid var(--border); border-radius:12px;
-      padding:20px; margin-bottom:12px; transition:background .3s,border-color .3s; }
-    .card-title { font-size:12px; font-weight:600; text-transform:uppercase;
-      letter-spacing:.5px; color:var(--muted); margin-bottom:8px; }
-    .card-value { font-size:26px; font-weight:700; }
-    .card-label { font-size:12px; color:var(--muted); }
-    .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
-      gap:12px; margin-bottom:20px; }
-    .stats-grid .card { margin-bottom:0; }
-    .threat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr));
-      gap:8px; margin-bottom:20px; }
-    .threat-item { background:var(--card); border:1px solid var(--border); border-radius:8px;
-      padding:10px 14px; display:flex; justify-content:space-between; align-items:center;
-      font-size:13px; }
-    .threat-item .count { font-weight:700; font-size:15px; }
-    .threat-item.critical { border-left:3px solid var(--red); }
-    .threat-item.high { border-left:3px solid var(--orange); }
-    .threat-item.medium { border-left:3px solid var(--accent); }
-    .threat-item.low { border-left:3px solid var(--green); }
+    .stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+    @media (max-width:600px) { .stats-grid { grid-template-columns:1fr; } }
+    .card { background:var(--card); border:1px solid var(--border); border-radius:10px;
+      padding:16px; transition:border-color .2s; }
+    .card-title { font-size:11px; text-transform:uppercase; letter-spacing:.5px;
+      color:var(--muted); margin-bottom:6px; }
+    .card-value { font-size:28px; font-weight:700; line-height:1.2; }
+    .card-label { font-size:12px; color:var(--muted); margin-top:2px; }
+    .skeleton { background:var(--border); border-radius:6px; height:14px;
+      animation:pulse 1.5s ease-in-out infinite; margin:4px 0; }
+    @keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:.4;} }
 
-    /* Sections */
     .section { margin-bottom:20px; }
     .section-header { display:flex; justify-content:space-between; align-items:center;
       padding:12px 16px; background:var(--card); border:1px solid var(--border);
@@ -72,73 +75,51 @@
     .section-header .hint { font-size:12px; color:var(--muted); }
     .section-header .chevron { transition:transform .3s; font-size:14px; color:var(--muted); }
     .section-header .chevron.open { transform:rotate(180deg); }
-    .section-body { overflow:hidden; transition:max-height .3s; }
 
-    /* Tables */
     table { width:100%; border-collapse:collapse; font-size:13px; }
     thead th { text-align:left; padding:8px 6px; border-bottom:1px solid var(--border);
       font-weight:600; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.3px; }
     tbody td { padding:6px; border-bottom:1px solid var(--border); vertical-align:middle; }
     tbody tr:last-child td { border-bottom:none; }
     tbody tr:hover { background:rgba(59,130,246,.04); }
-    .flag { display:inline-block; width:20px; height:14px; border-radius:2px; vertical-align:middle;
-      background-size:cover; background-position:center; margin-right:4px; }
-    .tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:500; }
-    .tag.bot { background:#fee2e2; color:#dc2626; }
-    .tag.human { background:#d1fae5; color:#059669; }
-    .tag.dot { background:#e0e7ff; color:#4338ca; }
-    .dark .tag.bot { background:#450a0a; color:#fca5a5; }
-    .dark .tag.human { background:#052e16; color:#86efac; }
-    .dark .tag.dot { background:#1e1b4b; color:#c7d2fe; }
+    .tag { display:inline-block; padding:1px 8px; border-radius:10px; font-size:11px;
+      font-weight:600; }
+    .tag.bot { background:rgba(239,68,68,.12); color:var(--red); }
+    .tag.human { background:rgba(34,197,94,.12); color:var(--green); }
+    .status-code { display:inline-block; padding:1px 8px; border-radius:6px;
+      font-size:11px; font-family:var(--mono); font-weight:600; }
+    .s2xx { background:rgba(34,197,94,.1); color:var(--green); }
+    .s3xx { background:rgba(59,130,246,.1); color:var(--accent); }
+    .s4xx { background:rgba(249,115,22,.1); color:var(--orange); }
+    .s5xx { background:rgba(239,68,68,.1); color:var(--red); }
+    .cat { display:inline-block; padding:1px 8px; border-radius:6px; font-size:11px;
+      font-family:var(--mono); font-weight:500; background:var(--border); }
+    .cat.git { background:rgba(34,197,94,.1); color:var(--green); }
+    .cat.env { background:rgba(249,115,22,.1); color:var(--orange); }
+    .cat.wordpress { background:rgba(59,130,246,.1); color:var(--accent); }
+    .cat.admin_scan { background:rgba(239,68,68,.1); color:var(--red); }
+    .cat.sqli { background:rgba(168,85,247,.1); color:#a855f7; }
+    .cat.config_leak { background:rgba(236,72,153,.1); color:#ec4899; }
 
-    /* Status badges */
-    .status-code { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px;
-      font-weight:600; font-family:var(--font); }
-    .status-code.s2xx { background:#d1fae5; color:#059669; }
-    .status-code.s4xx { background:#fef3c7; color:#d97706; }
-    .status-code.s5xx { background:#fee2e2; color:#dc2626; }
-    .dark .status-code.s2xx { background:#052e16; color:#86efac; }
-    .dark .status-code.s4xx { background:#451a03; color:#fcd34d; }
-    .dark .status-code.s5xx { background:#450a0a; color:#fca5a5; }
+    .threat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(100px,1fr)); gap:8px; }
+    .threat-item { background:var(--card); border:1px solid var(--border);
+      border-radius:8px; padding:10px; text-align:center; }
+    .threat-item .count { display:block; font-size:18px; font-weight:700; margin-top:4px; }
 
-    /* Bar chart */
-    .hour-bar { display:flex; align-items:center; gap:8px; margin-bottom:3px; font-size:12px; }
-    .hour-bar .hour-label { width:24px; text-align:right; color:var(--muted); font-weight:600; }
-    .hour-bar .bar-track { flex:1; height:18px; background:var(--border); border-radius:4px;
-      overflow:hidden; position:relative; }
-    .hour-bar .bar-fill { height:100%; border-radius:4px; transition:width .5s; position:relative; }
-    .hour-bar .bar-fill.hits { background:var(--accent); opacity:.8; }
-    .hour-bar .bar-fill.bots { background:var(--red); opacity:.6; position:absolute; top:0; left:0; }
-    .hour-bar .bar-count { width:40px; text-align:right; color:var(--muted); font-size:11px; }
+    .hour-bar { display:flex; align-items:center; gap:8px; padding:3px 0; }
+    .hour-label { width:24px; font-size:11px; font-family:var(--mono); color:var(--muted);
+      text-align:right; flex-shrink:0; }
+    .bar-track { flex:1; height:16px; background:var(--border); border-radius:8px;
+      overflow:hidden; display:flex; }
+    .bar-fill { height:100%; transition:width .3s; border-radius:8px; }
+    .bar-fill.hits { background:var(--accent); opacity:.8; }
+    .bar-fill.bots { background:var(--red); opacity:.6; }
+    .bar-count { width:34px; font-size:11px; font-family:var(--mono); color:var(--muted);
+      text-align:right; flex-shrink:0; }
 
-    /* Category badges */
-    .cat { display:inline-block; padding:1px 6px; border-radius:3px; font-size:10px; font-weight:600; }
-    .cat.wordpress { background:#fae8ff; color:#a21caf; }
-    .cat.git { background:#fef3c7; color:#b45309; }
-    .cat.config_leak { background:#fee2e2; color:#dc2626; }
-    .cat.other { background:#e5e7eb; color:#4b5563; }
-    .dark .cat.wordpress { background:#3b0764; color:#f0abfc; }
-    .dark .cat.git { background:#451a03; color:#fcd34d; }
-    .dark .cat.config_leak { background:#450a0a; color:#fca5a5; }
-    .dark .cat.other { background:#374151; color:#9ca3af; }
-
-    .skeleton { background:linear-gradient(90deg,var(--card) 25%,var(--border) 50%,var(--card) 75%);
-      background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:6px; height:20px; margin-bottom:4px; }
-    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
-
-    footer { margin-top:48px; padding-top:20px; border-top:1px solid var(--border);
-      font-size:13px; color:var(--muted); text-align:center; }
+    footer { text-align:center; padding:24px 0; font-size:13px; color:var(--muted); }
     footer a { color:var(--accent); text-decoration:none; }
     footer a:hover { text-decoration:underline; }
-
-    @media(max-width:640px) {
-      .container { padding:24px 12px; }
-      .date-picker { margin-left:0; width:100%; margin-top:8px; }
-      .date-picker input { flex:1; }
-      .status-bar { flex-direction:column; align-items:flex-start; }
-      .stats-grid { grid-template-columns:1fr 1fr; }
-      .threat-grid { grid-template-columns:1fr 1fr; }
-    }
   </style>
 </head>
 <body x-data="app()" x-init="init()" :class="{ dark: isDark }">
@@ -159,183 +140,124 @@
     </div>
     <div class="date-picker">
       <span style="font-size:13px;color:var(--muted);">Date:</span>
-      <input type="date" x-model="selectedDate" @change="loadReport()">
-      <button @click="loadReport()" :disabled="loading">Refresh</button>
+      <input type="date" x-model="selectedDate" @change="loadDay()">
+      <button hx-get="/api/v1/statistics/html/summary" hx-target="#stats-grid" hx-swap="outerHTML"
+              hx-include="#date-param" @click="swapSections()">Refresh</button>
+      <input type="hidden" id="date-param" name="date" :value="selectedDate">
     </div>
   </div>
 
-  <!-- ── Summary Cards ───── -->
-  <div class="stats-grid">
-    <div class="card">
-      <div class="card-title">Total Requests</div>
-          <template x-if="loading"><div><div class="skeleton" style="width:60%"></div></div></template>
-          <template x-if="!loading">
-            <div><div class="card-value" x-text="(visitorData?.data?.summary?.totalRequests ?? '—').toLocaleString()"></div>
-      <div class="card-label" x-text="visitorData?.data?.date"></div></div>
-          </template>
-    </div>
-    <div class="card">
-      <div class="card-title">Humans</div>
-      <template x-if="loading"><div><div class="skeleton" style="width:40%"></div></div></template>
-      <template x-if="!loading">
-        <div><div class="card-value" style="color:var(--green)" x-text="(visitorData?.data?.summary?.humanCount ?? '—').toLocaleString()"></div>
-        <div class="card-label">real visitors</div></div>
-      </template>
-    </div>
-    <div class="card">
-      <div class="card-title">Bots</div>
-      <template x-if="loading"><div><div class="skeleton" style="width:40%"></div></div></template>
-      <template x-if="!loading">
-        <div><div class="card-value" style="color:var(--red)" x-text="(visitorData?.data?.summary?.botCount ?? '—').toLocaleString()"></div>
-        <div class="card-label">
-          <span x-text="visitorData?.data?.summary?.scannerCount ?? '0'"></span> scanners ·
-          <span x-text="visitorData?.data?.summary?.uniqueIps ?? '0'"></span> IPs
-        </div></div>
-      </template>
+  <!-- ── Summary Cards (htmx-loaded) ── -->
+  <div id="stats-grid"
+       hx-get="/api/v1/statistics/html/summary"
+       hx-trigger="load"
+       hx-swap="outerHTML">
+    <div class="stats-grid">
+      <div class="card"><div class="card-title">Total Requests</div><div class="skeleton" style="width:60%"></div></div>
+      <div class="card"><div class="card-title">Humans</div><div class="skeleton" style="width:40%"></div></div>
+      <div class="card"><div class="card-title">Bots</div><div class="skeleton" style="width:40%"></div></div>
     </div>
   </div>
 
   <!-- ── Threat Intelligence ── -->
-  <div class="card" x-show="visitorData">
-    <div class="card-title">🚨 Threat Intelligence</div>
-    <div class="threat-grid">
-      <div class="threat-item critical">
-        <span>WP Probes</span>
-        <span class="count" x-text="visitorData?.data?.threatIntelligence?.wpProbes ?? 0"></span>
-      </div>
-      <div class="threat-item high">
-        <span>Env Steals</span>
-        <span class="count" x-text="visitorData?.data?.threatIntelligence?.envProbes ?? 0"></span>
-      </div>
-      <div class="threat-item high">
-        <span>Git Probes</span>
-        <span class="count" x-text="visitorData?.data?.threatIntelligence?.gitProbes ?? 0"></span>
-      </div>
-      <div class="threat-item medium">
-        <span>Config Leaks</span>
-        <span class="count" x-text="visitorData?.data?.threatIntelligence?.configLeaks ?? 0"></span>
-      </div>
-      <div class="threat-item medium">
-        <span>Admin Scans</span>
-        <span class="count" x-text="visitorData?.data?.threatIntelligence?.adminScans ?? 0"></span>
-      </div>
-      <div class="threat-item medium">
-        <span>SQLi Attempts</span>
-        <span class="count" x-text="visitorData?.data?.threatIntelligence?.sqliAttempts ?? 0"></span>
-      </div>
-      <div class="threat-item low">
-        <span>Other Probes</span>
-        <span class="count" x-text="visitorData?.data?.threatIntelligence?.otherProbes ?? 0"></span>
+  <div class="section">
+    <div class="section-header" @click="openSection('threat')">
+      <div><span class="label">🛡️ Threat Intelligence</span></div>
+      <span class="chevron" x-text="openSections.threat ? '▲' : '▼'"></span>
+    </div>
+    <template x-if="openSections.threat">
+    <div class="section-body" style="margin-top:8px;">
+      <div id="threat-grid" class="threat-grid"
+           hx-get="/api/v1/statistics/html/status"
+           hx-trigger="load"
+           hx-swap="innerHTML"
+           hx-include="#date-param">
+        <div class="skeleton" style="height:60px;width:100%"></div>
       </div>
     </div>
+    </template>
   </div>
 
   <!-- ── Collapsible Sections ── -->
 
   <!-- Top IPs -->
-  <div class="section" x-show="visitorData">
-    <div class="section-header" @click="openSections.topIps = !openSections.topIps">
-      <div><span class="label">🌐 Top IPs</span> <span class="hint" x-text="`(${visitorData?.data?.topIps?.length ?? 0})`"></span></div>
+  <div class="section">
+    <div class="section-header" @click="openSection('topIps')">
+      <div><span class="label">🌐 Top IPs</span></div>
       <span class="chevron" x-text="openSections.topIps ? '▲' : '▼'"></span>
     </div>
-    <template x-if="openSections.topIps && visitorData?.data?.topIps">
-    <div class="section-body">
+    <template x-if="openSections.topIps">
+    <div class="section-body" style="margin-top:8px;">
       <div class="card" style="overflow-x:auto;padding:12px;">
-        <table>
-          <thead>
-          <tr><th>#</th><th>IP</th><th>Country</th><th>Hits</th><th>Type</th><th>Bot Name</th><th>Top Status</th></tr>
-          </thead>
-          <tbody>
-            <template x-for="(ip, i) in visitorData?.data?.topIps" :key="ip.ip">
-              <tr>
-                <td style="color:var(--muted)" x-text="i+1"></td>
-                <td style="font-family:monospace;font-size:12px;" x-text="maskIP(ip.ip, ip.isBot)" :title="ip.isBot ? ip.ip : ''"></td>
-                <td x-text="ip.countryCode ?? '—'" :title="ip.countryName ?? ''"></td>
-                <td style="font-weight:600" x-text="ip.hitCount?.toLocaleString()"></td>
-                <td><span class="tag" :class="ip.isBot ? 'bot' : 'human'" x-text="ip.isBot ? 'Bot' : 'Human'"></span></td>
-                <td x-text="ip.botName ?? '—'" style="font-size:12px;"></td>
-                <td><span class="status-code" :class="statusClass(ip.topStatus)" x-text="ip.topStatus ?? '—'"></span></td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
+        <div id="top-ips-table"
+             hx-get="/api/v1/statistics/html/top-ips"
+             hx-trigger="load"
+             hx-swap="innerHTML"
+             hx-include="#date-param">
+          <div class="skeleton" style="height:120px"></div>
+        </div>
       </div>
     </div>
     </template>
   </div>
 
   <!-- Bot Breakdown -->
-  <div class="section" x-show="visitorData">
-    <div class="section-header" @click="openSections.bots = !openSections.bots">
-      <div><span class="label">🤖 Bot Breakdown</span> <span class="hint" x-text="`(${visitorData?.data?.botBreakdown?.length ?? 0})`"></span></div>
+  <div class="section">
+    <div class="section-header" @click="openSection('bots')">
+      <div><span class="label">🤖 Bot Breakdown</span></div>
       <span class="chevron" x-text="openSections.bots ? '▲' : '▼'"></span>
     </div>
-    <template x-if="openSections.bots && visitorData?.data?.botBreakdown">
-    <div class="section-body">
+    <template x-if="openSections.bots">
+    <div class="section-body" style="margin-top:8px;">
       <div class="card" style="overflow-x:auto;padding:12px;">
-        <table>
-          <thead><tr><th>Bot</th><th>Hits</th><th>Unique IPs</th></tr></thead>
-          <tbody>
-            <template x-for="bot in (visitorData?.data?.botBreakdown ?? [])" :key="bot.botName">
-              <tr>
-                <td style="font-weight:600" x-text="bot.botName"></td>
-                <td x-text="bot.hitCount?.toLocaleString()"></td>
-                <td x-text="bot.uniqueIps"></td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
+        <div id="bots-table"
+             hx-get="/api/v1/statistics/html/bots"
+             hx-trigger="load"
+             hx-swap="innerHTML"
+             hx-include="#date-param">
+          <div class="skeleton" style="height:80px"></div>
+        </div>
       </div>
     </div>
     </template>
   </div>
 
   <!-- Paths -->
-  <div class="section" x-show="visitorData">
-    <div class="section-header" @click="openSections.paths = !openSections.paths">
-      <div><span class="label">📁 Path Activity</span> <span class="hint" x-text="`(${visitorData?.data?.paths?.length ?? 0} paths)`"></span></div>
+  <div class="section">
+    <div class="section-header" @click="openSection('paths')">
+      <div><span class="label">📁 Path Activity</span></div>
       <span class="chevron" x-text="openSections.paths ? '▲' : '▼'"></span>
     </div>
-    <template x-if="openSections.paths && visitorData?.data?.paths">
-    <div class="section-body">
+    <template x-if="openSections.paths">
+    <div class="section-body" style="margin-top:8px;">
       <div class="card" style="overflow-x:auto;padding:12px;">
-        <table>
-          <thead><tr><th>Path</th><th>Hits</th><th>Unique IPs</th><th>200</th><th>404</th><th>Other</th><th>Category</th></tr></thead>
-          <tbody>
-            <template x-for="p in (visitorData?.data?.paths ?? [])" :key="p.path">
-              <tr>
-                <td style="font-size:12px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:monospace;" x-text="p.path"></td>
-                <td style="font-weight:600" x-text="p.hitCount?.toLocaleString()"></td>
-                <td x-text="p.uniqueIps"></td>
-                <td><span class="status-code s2xx" x-text="p.status200 ?? 0"></span></td>
-                <td><span class="status-code s4xx" x-text="p.status404 ?? 0"></span></td>
-                <td><span class="status-code s5xx" x-text="p.statusOther ?? 0"></span></td>
-                <td><span class="cat" :class="p.category ?? 'other'" x-text="(p.category ?? 'other').replace(/_/g,' ')"></span></td>
-              </tr>
-            </template>
-          </tbody>
-        </table>
+        <div id="paths-table"
+             hx-get="/api/v1/statistics/html/paths"
+             hx-trigger="load"
+             hx-swap="innerHTML"
+             hx-include="#date-param">
+          <div class="skeleton" style="height:200px"></div>
+        </div>
       </div>
     </div>
     </template>
   </div>
 
   <!-- Status Codes -->
-  <div class="section" x-show="visitorData">
-    <div class="section-header" @click="openSections.status = !openSections.status">
+  <div class="section">
+    <div class="section-header" @click="openSection('status')">
       <div><span class="label">📊 Status Code Distribution</span></div>
       <span class="chevron" x-text="openSections.status ? '▲' : '▼'"></span>
     </div>
-    <template x-if="openSections.status && visitorData?.data?.statusCodes">
-    <div class="section-body">
+    <template x-if="openSections.status">
+    <div class="section-body" style="margin-top:8px;">
       <div class="card">
-        <div class="threat-grid" style="grid-template-columns:repeat(auto-fit,minmax(100px,1fr))">
-          <template x-for="sc in (visitorData?.data?.statusCodes ?? [])" :key="sc.code">
-            <div class="threat-item">
-              <span class="status-code" :class="statusClass(sc.code)" x-text="sc.code"></span>
-              <span class="count" x-text="sc.hitCount?.toLocaleString()"></span>
-            </div>
-          </template>
+        <div id="status-grid" class="threat-grid"
+             hx-get="/api/v1/statistics/html/status"
+             hx-trigger="load"
+             hx-swap="innerHTML"
+             hx-include="#date-param">
+          <div class="skeleton" style="height:60px"></div>
         </div>
       </div>
     </div>
@@ -343,24 +265,21 @@
   </div>
 
   <!-- Hourly Activity -->
-  <div class="section" x-show="visitorData">
-    <div class="section-header" @click="openSections.hourly = !openSections.hourly">
+  <div class="section">
+    <div class="section-header" @click="openSection('hourly')">
       <div><span class="label">⏰ Hourly Activity</span></div>
       <span class="chevron" x-text="openSections.hourly ? '▲' : '▼'"></span>
     </div>
-    <template x-if="openSections.hourly && visitorData?.data?.hourlyActivity">
-    <div class="section-body">
+    <template x-if="openSections.hourly">
+    <div class="section-body" style="margin-top:8px;">
       <div class="card">
-        <template x-for="hr in (visitorData?.data?.hourlyActivity ?? [])" :key="hr.hour">
-          <div class="hour-bar">
-            <span class="hour-label" x-text="String(hr.hour).padStart(2,'0')"></span>
-            <div class="bar-track">
-              <div class="bar-fill hits" :style="`width:${pctHits(hr.hitCount)}%`"></div>
-              <div class="bar-fill bots" :style="`width:${pctBots(hr.botCount)}%`"></div>
-            </div>
-            <span class="bar-count" x-text="hr.hitCount"></span>
-          </div>
-        </template>
+        <div id="hourly-bars"
+             hx-get="/api/v1/statistics/html/hourly"
+             hx-trigger="load"
+             hx-swap="innerHTML"
+             hx-include="#date-param">
+          <div class="skeleton" style="height:200px"></div>
+        </div>
         <div style="display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--muted);justify-content:center;">
           <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--accent);opacity:.8;"></span> Hits</span>
           <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--red);opacity:.6;"></span> Bots</span>
@@ -375,86 +294,71 @@
   </footer>
 </div>
 
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
 <script>
-  function app() {
-    return {
-      // ── Theme ──
-      isDark: localStorage.getItem('theme') === 'dark'
-        || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches),
-      toggleTheme() {
-        this.isDark = !this.isDark;
-        localStorage.setItem('theme', this.isDark ? 'dark' : 'light');
-      },
+function app() {
+  return {
+    // ── Theme ──
+    isDark: localStorage.getItem('theme') === 'dark'
+      || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches),
+    toggleTheme() {
+      this.isDark = !this.isDark;
+      localStorage.setItem('theme', this.isDark ? 'dark' : 'light');
+    },
 
-      // ── State ──
-      apiStatus: 'loading',
-      lastChecked: '',
-      healthData: null,
-      visitorData: null,
-      selectedDate: '',
-      loading: true,
-      maxHits: 1,
-      openSections: { topIps: false, bots: false, paths: false, status: false, hourly: true },
+    // ── State ──
+    apiStatus: 'loading',
+    lastChecked: '',
+    healthData: null,
+    selectedDate: '',
+    openSections: { topIps: false, bots: false, paths: false, status: false, hourly: true, threat: false },
 
-      // ── Init ──
-      async init() {
-        // Set today's date
-        const d = new Date();
-        this.selectedDate = d.toISOString().slice(0, 10);
+    // ── Init ──
+    async init() {
+      const d = new Date();
+      this.selectedDate = d.toISOString().slice(0, 10);
+      try {
+        const res = await fetch('https://oldhat.dev/api/v1/health');
+        this.healthData = await res.json();
+        this.apiStatus = 'ok';
+      } catch { this.apiStatus = 'offline'; }
+      this.lastChecked = new Date().toLocaleTimeString();
+    },
 
-        // Fetch health
-        try {
-          const res = await fetch('https://oldhat.dev/api/v1/health');
-          this.healthData = await res.json();
-          this.apiStatus = 'ok';
-        } catch { this.apiStatus = 'offline'; }
-        this.lastChecked = new Date().toLocaleTimeString();
+    // ── Section toggle ──
+    openSection(name) {
+      this.openSections[name] = !this.openSections[name];
+    },
 
-        // Fetch latest report
-        await this.loadReport();
-      },
+    // ── Date change → reload all htmx sections ──
+    loadDay() {
+      // htmx will pick up the new date from #date-param on next interaction
+      // Trigger a reload of the summary cards
+      htmx.ajax('GET', '/api/v1/statistics/html/summary', {
+        target: '#stats-grid',
+        swap: 'outerHTML',
+        values: { date: this.selectedDate },
+      });
+    },
 
-      // ── Load report for selected date ──
-      async loadReport() {
-        this.loading = true;
-        try {
-          const res = await fetch(`https://oldhat.dev/api/v1/statistics/visitors?date=${this.selectedDate}`);
-          if (!res.ok) {
-            this.visitorData = null;
-            return;
-          }
-          this.visitorData = await res.json();
-
-          // Calculate max hits for hourly bars
-          if (this.visitorData?.data?.hourlyActivity?.length) {
-            this.maxHits = Math.max(...this.visitorData.data.hourlyActivity.map(h => h.hitCount), 1);
-          }
-        } catch { this.visitorData = null; }
-        this.loading = false;
-      },
-
-      // ── Helpers ──
-      statusClass(code) {
-        if (!code) return '';
-        if (code < 300) return 's2xx';
-        if (code < 500) return 's4xx';
-        return 's5xx';
-      },
-      maskIP(ip, isBot) {
-        if (!ip || isBot) return ip ?? '—';
-        // IPv4: a.b.c.d → ***.***.c.d
-        const parts = ip.split('.');
-        if (parts.length === 4) return `***.***.${parts[2]}.${parts[3]}`;
-        // IPv6: show last 2 groups
-        const v6parts = ip.split(':');
-        if (v6parts.length >= 4) return `***.***.***.***:${v6parts.slice(-2).join(':')}`;
-        return ip;
-      },
-      pctHits(count) { return Math.max(3, (count / this.maxHits) * 100); },
-      pctBots(count) { return Math.max(1, (count / this.maxHits) * 100); },
-    }
-  }
+    // ── Refresh button: reload all sections ──
+    swapSections() {
+      const date = this.selectedDate;
+      const sections = [
+        { url: '/api/v1/statistics/html/summary', target: '#stats-grid', swap: 'outerHTML' },
+        { url: '/api/v1/statistics/html/top-ips', target: '#top-ips-table', swap: 'innerHTML' },
+        { url: '/api/v1/statistics/html/bots', target: '#bots-table', swap: 'innerHTML' },
+        { url: '/api/v1/statistics/html/paths', target: '#paths-table', swap: 'innerHTML' },
+        { url: '/api/v1/statistics/html/status', target: '#status-grid', swap: 'innerHTML' },
+        { url: '/api/v1/statistics/html/hourly', target: '#hourly-bars', swap: 'innerHTML' },
+      ];
+      // Also reload threat grid if visible
+      sections.push({ url: '/api/v1/statistics/html/status', target: '#threat-grid', swap: 'innerHTML' });
+      for (const s of sections) {
+        htmx.ajax('GET', s.url, { target: s.target, swap: s.swap, values: { date } });
+      }
+    },
+  };
+}
 </script>
 </body>
 </html>
