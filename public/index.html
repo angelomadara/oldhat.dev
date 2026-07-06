@@ -168,24 +168,24 @@
   <div class="stats-grid">
     <div class="card">
       <div class="card-title">Total Requests</div>
-      <template x-if="!visitorData"><div><div class="skeleton" style="width:60%"></div></div></template>
-      <template x-if="visitorData">
-        <div><div class="card-value" x-text="(visitorData?.data?.summary?.totalRequests ?? '—').toLocaleString()"></div>
-        <div class="card-label" x-text="visitorData?.data?.date"></div></div>
-      </template>
+          <template x-if="loading"><div><div class="skeleton" style="width:60%"></div></div></template>
+          <template x-if="!loading">
+            <div><div class="card-value" x-text="(visitorData?.data?.summary?.totalRequests ?? '—').toLocaleString()"></div>
+      <div class="card-label" x-text="visitorData?.data?.date"></div></div>
+          </template>
     </div>
     <div class="card">
       <div class="card-title">Humans</div>
-      <template x-if="!visitorData"><div><div class="skeleton" style="width:40%"></div></div></template>
-      <template x-if="visitorData">
+      <template x-if="loading"><div><div class="skeleton" style="width:40%"></div></div></template>
+      <template x-if="!loading">
         <div><div class="card-value" style="color:var(--green)" x-text="(visitorData?.data?.summary?.humanCount ?? '—').toLocaleString()"></div>
         <div class="card-label">real visitors</div></div>
       </template>
     </div>
     <div class="card">
       <div class="card-title">Bots</div>
-      <template x-if="!visitorData"><div><div class="skeleton" style="width:40%"></div></div></template>
-      <template x-if="visitorData">
+      <template x-if="loading"><div><div class="skeleton" style="width:40%"></div></div></template>
+      <template x-if="!loading">
         <div><div class="card-value" style="color:var(--red)" x-text="(visitorData?.data?.summary?.botCount ?? '—').toLocaleString()"></div>
         <div class="card-label">
           <span x-text="visitorData?.data?.summary?.scannerCount ?? '0'"></span> scanners ·
@@ -245,7 +245,7 @@
           <tr><th>#</th><th>IP</th><th>Country</th><th>Hits</th><th>Type</th><th>Bot Name</th><th>Top Status</th></tr>
           </thead>
           <tbody>
-            <template x-for="(ip, i) in (visitorData?.data?.topIps ?? [])" :key="ip.ip">
+            <template x-for="(ip, i) in visitorData?.data?.topIps" :key="ip.ip">
               <tr>
                 <td style="color:var(--muted)" x-text="i+1"></td>
                 <td style="font-family:monospace;font-size:12px;" x-text="maskIP(ip.ip, ip.isBot)" :title="ip.isBot ? ip.ip : ''"></td>
@@ -381,7 +381,7 @@
       apiStatus: 'loading',
       lastChecked: '',
       healthData: null,
-      visitorData: null,
+      visitorData: { data: { summary: {}, threatIntelligence: {}, topIps: [], botBreakdown: [], paths: [], statusCodes: [], hourlyActivity: [] } },
       selectedDate: '',
       loading: false,
       maxHits: 1,
