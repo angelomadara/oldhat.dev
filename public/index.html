@@ -1,285 +1,441 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>oldhat.dev</title>
-    <style>
-        :root {
-            --bg: #ffffff;
-            --fg: #1a1a2e;
-            --muted: #6b7280;
-            --card: #f3f4f6;
-            --border: #e5e7eb;
-            --accent: #3b82f6;
-            --accent-hover: #2563eb;
-            --green: #10b981;
-            --red: #ef4444;
-            --font: system-ui, -apple-system, 'Segoe UI', sans-serif;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>oldhat.dev — Traffic Dashboard</title>
+  <style>
+    :root {
+      --bg: #ffffff; --fg: #1a1a2e; --muted: #6b7280;
+      --card: #f3f4f6; --border: #e5e7eb; --accent: #3b82f6;
+      --accent-hover: #2563eb; --green: #10b981; --red: #ef4444;
+      --orange: #f59e0b; --purple: #8b5cf6; --font: system-ui,-apple-system,'Segoe UI',sans-serif;
+    }
+    .dark { --bg: #0f172a; --fg: #e2e8f0; --muted: #94a3b8;
+      --card: #1e293b; --border: #334155; --accent: #60a5fa;
+      --accent-hover: #3b82f6; --green: #34d399; --red: #f87171;
+      --orange: #fbbf24; --purple: #a78bfa; }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { font-family:var(--font); background:var(--bg); color:var(--fg);
+      min-height:100vh; transition:background .3s,color .3s; line-height:1.6; }
+    .container { max-width:960px; margin:0 auto; padding:40px 20px; }
+    header { display:flex; justify-content:space-between; align-items:center; margin-bottom:16px; }
+    .logo { font-size:20px; font-weight:700; letter-spacing:-.5px; }
+    .logo span { color:var(--accent); }
+    .theme-toggle { background:var(--card); border:1px solid var(--border); color:var(--fg);
+      padding:8px 16px; border-radius:8px; cursor:pointer; font-size:14px;
+      font-family:var(--font); transition:all .2s; }
+    .theme-toggle:hover { background:var(--accent); color:#fff; border-color:var(--accent); }
+    .status-bar { display:flex; align-items:center; gap:16px; flex-wrap:wrap; margin-bottom:24px; }
+    .status-badge { display:inline-flex; align-items:center; gap:8px; background:var(--card);
+      border:1px solid var(--border); padding:6px 16px; border-radius:20px; font-size:13px; font-weight:500; }
+    .status-dot { width:8px; height:8px; border-radius:50%; display:inline-block; }
+    .status-dot.online { background:var(--green); box-shadow:0 0 8px var(--green); }
+    .status-dot.offline { background:var(--red); box-shadow:0 0 8px var(--red); }
+    .date-picker { display:flex; align-items:center; gap:8px; margin-left:auto; }
+    .date-picker input { background:var(--card); border:1px solid var(--border); color:var(--fg);
+      padding:6px 12px; border-radius:8px; font-size:13px; font-family:var(--font); }
+    .date-picker button { background:var(--accent); color:#fff; border:none; padding:6px 14px;
+      border-radius:8px; cursor:pointer; font-size:13px; font-family:var(--font);
+      transition:background .2s; }
+    .date-picker button:hover { background:var(--accent-hover); }
+    .date-picker button:disabled { opacity:.5; cursor:not-allowed; }
 
-        .dark {
-            --bg: #0f172a;
-            --fg: #e2e8f0;
-            --muted: #94a3b8;
-            --card: #1e293b;
-            --border: #334155;
-            --accent: #60a5fa;
-            --accent-hover: #3b82f6;
-            --green: #34d399;
-            --red: #f87171;
-        }
+    /* Cards */
+    .card { background:var(--card); border:1px solid var(--border); border-radius:12px;
+      padding:20px; margin-bottom:12px; transition:background .3s,border-color .3s; }
+    .card-title { font-size:12px; font-weight:600; text-transform:uppercase;
+      letter-spacing:.5px; color:var(--muted); margin-bottom:8px; }
+    .card-value { font-size:26px; font-weight:700; }
+    .card-label { font-size:12px; color:var(--muted); }
+    .stats-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr));
+      gap:12px; margin-bottom:20px; }
+    .stats-grid .card { margin-bottom:0; }
+    .threat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(110px,1fr));
+      gap:8px; margin-bottom:20px; }
+    .threat-item { background:var(--card); border:1px solid var(--border); border-radius:8px;
+      padding:10px 14px; display:flex; justify-content:space-between; align-items:center;
+      font-size:13px; }
+    .threat-item .count { font-weight:700; font-size:15px; }
+    .threat-item.critical { border-left:3px solid var(--red); }
+    .threat-item.high { border-left:3px solid var(--orange); }
+    .threat-item.medium { border-left:3px solid var(--accent); }
+    .threat-item.low { border-left:3px solid var(--green); }
 
-        * { margin: 0; padding: 0; box-sizing: border-box; }
+    /* Sections */
+    .section { margin-bottom:20px; }
+    .section-header { display:flex; justify-content:space-between; align-items:center;
+      padding:12px 16px; background:var(--card); border:1px solid var(--border);
+      border-radius:10px; cursor:pointer; transition:background .2s; user-select:none; }
+    .section-header:hover { background:var(--border); }
+    .section-header .label { font-weight:600; font-size:14px; }
+    .section-header .hint { font-size:12px; color:var(--muted); }
+    .section-header .chevron { transition:transform .3s; font-size:14px; color:var(--muted); }
+    .section-header .chevron.open { transform:rotate(180deg); }
+    .section-body { overflow:hidden; transition:max-height .3s; }
 
-        body {
-            font-family: var(--font);
-            background: var(--bg);
-            color: var(--fg);
-            min-height: 100vh;
-            transition: background 0.3s, color 0.3s;
-            line-height: 1.6;
-        }
+    /* Tables */
+    table { width:100%; border-collapse:collapse; font-size:13px; }
+    thead th { text-align:left; padding:8px 6px; border-bottom:1px solid var(--border);
+      font-weight:600; color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.3px; }
+    tbody td { padding:6px; border-bottom:1px solid var(--border); vertical-align:middle; }
+    tbody tr:last-child td { border-bottom:none; }
+    tbody tr:hover { background:rgba(59,130,246,.04); }
+    .flag { display:inline-block; width:20px; height:14px; border-radius:2px; vertical-align:middle;
+      background-size:cover; background-position:center; margin-right:4px; }
+    .tag { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px; font-weight:500; }
+    .tag.bot { background:#fee2e2; color:#dc2626; }
+    .tag.human { background:#d1fae5; color:#059669; }
+    .tag.dot { background:#e0e7ff; color:#4338ca; }
+    .dark .tag.bot { background:#450a0a; color:#fca5a5; }
+    .dark .tag.human { background:#052e16; color:#86efac; }
+    .dark .tag.dot { background:#1e1b4b; color:#c7d2fe; }
 
-        .container {
-            max-width: 720px;
-            margin: 0 auto;
-            padding: 48px 24px;
-        }
+    /* Status badges */
+    .status-code { display:inline-block; padding:2px 8px; border-radius:4px; font-size:11px;
+      font-weight:600; font-family:var(--font); }
+    .status-code.s2xx { background:#d1fae5; color:#059669; }
+    .status-code.s4xx { background:#fef3c7; color:#d97706; }
+    .status-code.s5xx { background:#fee2e2; color:#dc2626; }
+    .dark .status-code.s2xx { background:#052e16; color:#86efac; }
+    .dark .status-code.s4xx { background:#451a03; color:#fcd34d; }
+    .dark .status-code.s5xx { background:#450a0a; color:#fca5a5; }
 
-        /* ── Header ──────────────────────── */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 48px;
-        }
+    /* Bar chart */
+    .hour-bar { display:flex; align-items:center; gap:8px; margin-bottom:3px; font-size:12px; }
+    .hour-bar .hour-label { width:24px; text-align:right; color:var(--muted); font-weight:600; }
+    .hour-bar .bar-track { flex:1; height:18px; background:var(--border); border-radius:4px;
+      overflow:hidden; position:relative; }
+    .hour-bar .bar-fill { height:100%; border-radius:4px; transition:width .5s; position:relative; }
+    .hour-bar .bar-fill.hits { background:var(--accent); opacity:.8; }
+    .hour-bar .bar-fill.bots { background:var(--red); opacity:.6; position:absolute; top:0; left:0; }
+    .hour-bar .bar-count { width:40px; text-align:right; color:var(--muted); font-size:11px; }
 
-        .logo {
-            font-size: 20px;
-            font-weight: 700;
-            letter-spacing: -0.5px;
-        }
+    /* Category badges */
+    .cat { display:inline-block; padding:1px 6px; border-radius:3px; font-size:10px; font-weight:600; }
+    .cat.wordpress { background:#fae8ff; color:#a21caf; }
+    .cat.git { background:#fef3c7; color:#b45309; }
+    .cat.config_leak { background:#fee2e2; color:#dc2626; }
+    .cat.other { background:#e5e7eb; color:#4b5563; }
+    .dark .cat.wordpress { background:#3b0764; color:#f0abfc; }
+    .dark .cat.git { background:#451a03; color:#fcd34d; }
+    .dark .cat.config_leak { background:#450a0a; color:#fca5a5; }
+    .dark .cat.other { background:#374151; color:#9ca3af; }
 
-        .logo span { color: var(--accent); }
+    .skeleton { background:linear-gradient(90deg,var(--card) 25%,var(--border) 50%,var(--card) 75%);
+      background-size:200% 100%; animation:shimmer 1.5s infinite; border-radius:6px; height:20px; margin-bottom:4px; }
+    @keyframes shimmer { 0%{background-position:200% 0} 100%{background-position:-200% 0} }
 
-        .theme-toggle {
-            background: var(--card);
-            border: 1px solid var(--border);
-            color: var(--fg);
-            padding: 8px 16px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-family: var(--font);
-            transition: all 0.2s;
-        }
+    footer { margin-top:48px; padding-top:20px; border-top:1px solid var(--border);
+      font-size:13px; color:var(--muted); text-align:center; }
+    footer a { color:var(--accent); text-decoration:none; }
+    footer a:hover { text-decoration:underline; }
 
-        .theme-toggle:hover {
-            background: var(--accent);
-            color: #fff;
-            border-color: var(--accent);
-        }
-
-        /* ── Status Badge ─────────────────── */
-        .status-badge {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            background: var(--card);
-            border: 1px solid var(--border);
-            padding: 6px 16px;
-            border-radius: 20px;
-            font-size: 13px;
-            font-weight: 500;
-        }
-
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            display: inline-block;
-        }
-
-        .status-dot.online { background: var(--green); box-shadow: 0 0 8px var(--green); }
-        .status-dot.offline { background: var(--red); box-shadow: 0 0 8px var(--red); }
-
-        /* ── Cards ────────────────────────── */
-        .card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 24px;
-            margin-bottom: 16px;
-            transition: background 0.3s, border-color 0.3s;
-        }
-
-        .card-title {
-            font-size: 13px;
-            font-weight: 600;
-            text-transform: uppercase;
-            letter-spacing: 0.5px;
-            color: var(--muted);
-            margin-bottom: 12px;
-        }
-
-        .card-value {
-            font-size: 28px;
-            font-weight: 700;
-            margin-bottom: 4px;
-        }
-
-        .card-label {
-            font-size: 13px;
-            color: var(--muted);
-        }
-
-        /* ── Grid ─────────────────────────── */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-            gap: 16px;
-            margin-bottom: 32px;
-        }
-
-        /* ── Loading skeleton ──────────────── */
-        .skeleton {
-            background: linear-gradient(90deg, var(--card) 25%, var(--border) 50%, var(--card) 75%);
-            background-size: 200% 100%;
-            animation: shimmer 1.5s infinite;
-            border-radius: 6px;
-            height: 20px;
-            margin-bottom: 4px;
-        }
-
-        @keyframes shimmer {
-            0% { background-position: 200% 0; }
-            100% { background-position: -200% 0; }
-        }
-
-        /* ── Footer ───────────────────────── */
-        footer {
-            margin-top: 64px;
-            padding-top: 24px;
-            border-top: 1px solid var(--border);
-            font-size: 13px;
-            color: var(--muted);
-            text-align: center;
-        }
-
-        footer a { color: var(--accent); text-decoration: none; }
-        footer a:hover { text-decoration: underline; }
-
-        /* ── Transition helpers ────────────── */
-    </style>
+    @media(max-width:640px) {
+      .container { padding:24px 12px; }
+      .date-picker { margin-left:0; width:100%; margin-top:8px; }
+      .date-picker input { flex:1; }
+      .status-bar { flex-direction:column; align-items:flex-start; }
+      .stats-grid { grid-template-columns:1fr 1fr; }
+      .threat-grid { grid-template-columns:1fr 1fr; }
+    }
+  </style>
 </head>
 <body x-data="app()" x-init="init()" :class="{ dark: isDark }">
+<div class="container">
 
-    <div class="container">
+  <!-- ── Header ──────────── -->
+  <header>
+    <div class="logo">oldhat<span>.</span>dev</div>
+    <div class="theme-toggle" @click="toggleTheme" x-text="isDark ? '☀️ Light' : '🌙 Dark'"></div>
+  </header>
 
-        <!-- ── Header ──────────────────────── -->
-        <header>
-            <div class="logo">oldhat<span>.</span>dev</div>
-            <div class="theme-toggle" @click="toggleTheme" x-text="isDark ? '☀️ Light' : '🌙 Dark'"></div>
-        </header>
-
-        <!-- ── Status ───────────────────────── -->
-        <div class="status-badge" style="margin-bottom: 32px;">
-            <span class="status-dot" :class="apiStatus === 'ok' ? 'online' : 'offline'"></span>
-            <span x-text="apiStatus === 'ok' ? 'API Online' : (apiStatus === 'loading' ? 'Checking...' : 'API Offline')"></span>
-            <span style="color: var(--muted); font-weight: 400;" x-text="lastChecked"></span>
-        </div>
-
-        <!-- ── Stats Grid ──────────────────── -->
-        <div class="stats-grid">
-            <div class="card">
-                <div class="card-title">Server Status</div>
-                <template x-if="apiStatus === 'loading'">
-                    <div><div class="skeleton" style="width: 60%;"></div><div class="skeleton" style="width: 40%;"></div></div>
-                </template>
-                <template x-if="apiStatus !== 'loading'">
-                    <div>
-                        <div class="card-value" x-text="healthData?.data?.status ?? '—'"></div>
-                        <div class="card-label">Last health check</div>
-                    </div>
-                </template>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Total Requests</div>
-                <template x-if="!visitorData">
-                    <div><div class="skeleton" style="width: 50%;"></div></div>
-                </template>
-                <template x-if="visitorData">
-                    <div>
-                        <div class="card-value" x-text="visitorData?.data?.summary?.totalRequests?.toLocaleString() ?? '—'"></div>
-                        <div class="card-label" x-text="visitorData?.data?.date ?? 'latest report'"></div>
-                    </div>
-                </template>
-            </div>
-
-            <div class="card">
-                <div class="card-title">Visitors Today</div>
-                <template x-if="!visitorData">
-                    <div><div class="skeleton" style="width: 40%;"></div></div>
-                </template>
-                <template x-if="visitorData">
-                    <div>
-                        <div class="card-value" x-text="visitorData?.data?.summary?.humanCount?.toLocaleString() ?? '—'"></div>
-                        <div class="card-label">
-                            <span x-text="visitorData?.data?.summary?.botCount?.toLocaleString() ?? '—'"></span> bots ·
-                            <span x-text="visitorData?.data?.summary?.uniqueIps?.toLocaleString() ?? '—'"></span> unique IPs
-                        </div>
-                    </div>
-                </template>
-            </div>
-        </div>
-
-        <!-- ── Footer ───────────────────────── -->
-        <footer>
-            <p>oldhat.dev · <a href="https://api.oldhat.dev/v1/health" target="_blank">API Health</a> · <a href="https://github.com/angelomadara" target="_blank">GitHub</a></p>
-        </footer>
+  <!-- ── Status Bar + Date ── -->
+  <div class="status-bar">
+    <div class="status-badge">
+      <span class="status-dot" :class="apiStatus === 'ok' ? 'online' : 'offline'"></span>
+      <span x-text="apiStatus === 'ok' ? 'API Online' : (apiStatus === 'loading' ? 'Checking...' : 'API Offline')"></span>
+      <span style="color:var(--muted);font-weight:400;" x-text="lastChecked"></span>
     </div>
+    <div class="date-picker">
+      <span style="font-size:13px;color:var(--muted);">Date:</span>
+      <input type="date" x-model="selectedDate" @change="loadReport()">
+      <button @click="loadReport()" :disabled="loading">Refresh</button>
+    </div>
+  </div>
 
-    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
-    <script>
-        function app() {
-            return {
-                // ── Theme ──
-                isDark: localStorage.getItem('theme') === 'dark'
-                        || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches),
-                toggleTheme() {
-                    this.isDark = !this.isDark;
-                    localStorage.setItem('theme', this.isDark ? 'dark' : 'light');
-                },
+  <!-- ── Summary Cards ───── -->
+  <div class="stats-grid">
+    <div class="card">
+      <div class="card-title">Total Requests</div>
+      <template x-if="!visitorData"><div><div class="skeleton" style="width:60%"></div></div></template>
+      <template x-if="visitorData">
+        <div><div class="card-value" x-text="(visitorData?.data?.summary?.totalRequests ?? '—').toLocaleString()"></div>
+        <div class="card-label" x-text="visitorData?.data?.date"></div></div>
+      </template>
+    </div>
+    <div class="card">
+      <div class="card-title">Humans</div>
+      <template x-if="!visitorData"><div><div class="skeleton" style="width:40%"></div></div></template>
+      <template x-if="visitorData">
+        <div><div class="card-value" style="color:var(--green)" x-text="(visitorData?.data?.summary?.humanCount ?? '—').toLocaleString()"></div>
+        <div class="card-label">real visitors</div></div>
+      </template>
+    </div>
+    <div class="card">
+      <div class="card-title">Bots</div>
+      <template x-if="!visitorData"><div><div class="skeleton" style="width:40%"></div></div></template>
+      <template x-if="visitorData">
+        <div><div class="card-value" style="color:var(--red)" x-text="(visitorData?.data?.summary?.botCount ?? '—').toLocaleString()"></div>
+        <div class="card-label">
+          <span x-text="visitorData?.data?.summary?.scannerCount ?? '0'"></span> scanners ·
+          <span x-text="visitorData?.data?.summary?.uniqueIps ?? '0'"></span> IPs
+        </div></div>
+      </template>
+    </div>
+  </div>
 
-                // ── API Data ──
-                apiStatus: 'loading',
-                lastChecked: '',
-                healthData: null,
-                visitorData: null,
+  <!-- ── Threat Intelligence ── -->
+  <div class="card" x-show="visitorData">
+    <div class="card-title">🚨 Threat Intelligence</div>
+    <div class="threat-grid">
+      <div class="threat-item critical">
+        <span>WP Probes</span>
+        <span class="count" x-text="visitorData?.data?.threatIntelligence?.wpProbes ?? 0"></span>
+      </div>
+      <div class="threat-item high">
+        <span>Env Steals</span>
+        <span class="count" x-text="visitorData?.data?.threatIntelligence?.envProbes ?? 0"></span>
+      </div>
+      <div class="threat-item high">
+        <span>Git Probes</span>
+        <span class="count" x-text="visitorData?.data?.threatIntelligence?.gitProbes ?? 0"></span>
+      </div>
+      <div class="threat-item medium">
+        <span>Config Leaks</span>
+        <span class="count" x-text="visitorData?.data?.threatIntelligence?.configLeaks ?? 0"></span>
+      </div>
+      <div class="threat-item medium">
+        <span>Admin Scans</span>
+        <span class="count" x-text="visitorData?.data?.threatIntelligence?.adminScans ?? 0"></span>
+      </div>
+      <div class="threat-item medium">
+        <span>SQLi Attempts</span>
+        <span class="count" x-text="visitorData?.data?.threatIntelligence?.sqliAttempts ?? 0"></span>
+      </div>
+      <div class="threat-item low">
+        <span>Other Probes</span>
+        <span class="count" x-text="visitorData?.data?.threatIntelligence?.otherProbes ?? 0"></span>
+      </div>
+    </div>
+  </div>
 
-                async init() {
-                    // Fetch API health
-                    try {
-                        const res = await fetch('https://oldhat.dev/api/v1/health');
-                        this.healthData = await res.json();
-                        this.apiStatus = 'ok';
-                    } catch {
-                        this.apiStatus = 'offline';
-                    }
-                    this.lastChecked = new Date().toLocaleTimeString();
+  <!-- ── Collapsible Sections ── -->
 
-                    // Fetch visitor stats (latest date)
-                    try {
-                        const dateRes = await fetch('https://oldhat.dev/api/v1/statistics/visitors');
-                        this.visitorData = await dateRes.json();
-                    } catch {
-                        // No data yet today, silently ignore
-                    }
-                },
-            }
-        }
-    </script>
+  <!-- Top IPs -->
+  <div class="section" x-show="visitorData">
+    <div class="section-header" @click="openSections.topIps = !openSections.topIps">
+      <div><span class="label">🌐 Top IPs</span> <span class="hint" x-text="`(${visitorData?.data?.topIps?.length ?? 0})`"></span></div>
+      <span class="chevron" x-text="openSections.topIps ? '▲' : '▼'"></span>
+    </div>
+    <div class="section-body" x-show="openSections.topIps">
+      <div class="card" style="overflow-x:auto;padding:12px;">
+        <table>
+          <thead>
+            <tr><th>#</th><th>IP</th><th>Country</th><th>Hits</th><th>Type</th><th>Bot Name</th><th>Top Path</th><th>Top Status</th></tr>
+          </thead>
+          <tbody>
+            <template x-for="(ip, i) in visitorData?.data?.topIps" :key="ip.ip">
+              <tr>
+                <td style="color:var(--muted)" x-text="i+1"></td>
+                <td style="font-family:monospace;font-size:12px;" x-text="ip.ip"></td>
+                <td x-text="ip.countryCode ?? '—'" :title="ip.countryName ?? ''"></td>
+                <td style="font-weight:600" x-text="ip.hitCount?.toLocaleString()"></td>
+                <td><span class="tag" :class="ip.isBot ? 'bot' : 'human'" x-text="ip.isBot ? 'Bot' : 'Human'"></span></td>
+                <td x-text="ip.botName ?? '—'" style="font-size:12px;"></td>
+                <td style="font-size:12px;max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" x-text="ip.topPath ?? '—'"></td>
+                <td><span class="status-code" :class="statusClass(ip.topStatus)" x-text="ip.topStatus ?? '—'"></span></td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bot Breakdown -->
+  <div class="section" x-show="visitorData">
+    <div class="section-header" @click="openSections.bots = !openSections.bots">
+      <div><span class="label">🤖 Bot Breakdown</span> <span class="hint" x-text="`(${visitorData?.data?.botBreakdown?.length ?? 0})`"></span></div>
+      <span class="chevron" x-text="openSections.bots ? '▲' : '▼'"></span>
+    </div>
+    <div class="section-body" x-show="openSections.bots" >
+      <div class="card" style="overflow-x:auto;padding:12px;">
+        <table>
+          <thead><tr><th>Bot</th><th>Hits</th><th>Unique IPs</th></tr></thead>
+          <tbody>
+            <template x-for="bot in visitorData?.data?.botBreakdown" :key="bot.botName">
+              <tr>
+                <td style="font-weight:600" x-text="bot.botName"></td>
+                <td x-text="bot.hitCount?.toLocaleString()"></td>
+                <td x-text="bot.uniqueIps"></td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Paths -->
+  <div class="section" x-show="visitorData">
+    <div class="section-header" @click="openSections.paths = !openSections.paths">
+      <div><span class="label">📁 Path Activity</span> <span class="hint" x-text="`(${visitorData?.data?.paths?.length ?? 0} paths)`"></span></div>
+      <span class="chevron" x-text="openSections.paths ? '▲' : '▼'"></span>
+    </div>
+    <div class="section-body" x-show="openSections.paths" >
+      <div class="card" style="overflow-x:auto;padding:12px;">
+        <table>
+          <thead><tr><th>Path</th><th>Hits</th><th>Unique IPs</th><th>200</th><th>404</th><th>Other</th><th>Category</th></tr></thead>
+          <tbody>
+            <template x-for="p in visitorData?.data?.paths" :key="p.path">
+              <tr>
+                <td style="font-size:12px;max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-family:monospace;" x-text="p.path"></td>
+                <td style="font-weight:600" x-text="p.hitCount?.toLocaleString()"></td>
+                <td x-text="p.uniqueIps"></td>
+                <td><span class="status-code s2xx" x-text="p.status200 ?? 0"></span></td>
+                <td><span class="status-code s4xx" x-text="p.status404 ?? 0"></span></td>
+                <td><span class="status-code s5xx" x-text="p.statusOther ?? 0"></span></td>
+                <td><span class="cat" :class="p.category ?? 'other'" x-text="(p.category ?? 'other').replace(/_/g,' ')"></span></td>
+              </tr>
+            </template>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <!-- Status Codes -->
+  <div class="section" x-show="visitorData">
+    <div class="section-header" @click="openSections.status = !openSections.status">
+      <div><span class="label">📊 Status Code Distribution</span></div>
+      <span class="chevron" x-text="openSections.status ? '▲' : '▼'"></span>
+    </div>
+    <div class="section-body" x-show="openSections.status" >
+      <div class="card">
+        <div class="threat-grid" style="grid-template-columns:repeat(auto-fit,minmax(100px,1fr))">
+          <template x-for="sc in visitorData?.data?.statusCodes" :key="sc.code">
+            <div class="threat-item">
+              <span class="status-code" :class="statusClass(sc.code)" x-text="sc.code"></span>
+              <span class="count" x-text="sc.hitCount?.toLocaleString()"></span>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Hourly Activity -->
+  <div class="section" x-show="visitorData">
+    <div class="section-header" @click="openSections.hourly = !openSections.hourly">
+      <div><span class="label">⏰ Hourly Activity</span></div>
+      <span class="chevron" x-text="openSections.hourly ? '▲' : '▼'"></span>
+    </div>
+    <div class="section-body" x-show="openSections.hourly" >
+      <div class="card">
+        <template x-for="hr in visitorData?.data?.hourlyActivity" :key="hr.hour">
+          <div class="hour-bar">
+            <span class="hour-label" x-text="String(hr.hour).padStart(2,'0')"></span>
+            <div class="bar-track">
+              <div class="bar-fill hits" :style="`width:${pctHits(hr.hitCount)}%`"></div>
+              <div class="bar-fill bots" :style="`width:${pctBots(hr.botCount)}%`"></div>
+            </div>
+            <span class="bar-count" x-text="hr.hitCount"></span>
+          </div>
+        </template>
+        <div style="display:flex;gap:16px;margin-top:10px;font-size:12px;color:var(--muted);justify-content:center;">
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--accent);opacity:.8;"></span> Hits</span>
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--red);opacity:.6;"></span> Bots</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>oldhat.dev · <a href="https://api.oldhat.dev/v1/health" target="_blank">API Health</a> · <a href="https://github.com/angelomadara" target="_blank">GitHub</a></p>
+  </footer>
+</div>
+
+<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"></script>
+<script>
+  function app() {
+    return {
+      // ── Theme ──
+      isDark: localStorage.getItem('theme') === 'dark'
+        || (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches),
+      toggleTheme() {
+        this.isDark = !this.isDark;
+        localStorage.setItem('theme', this.isDark ? 'dark' : 'light');
+      },
+
+      // ── State ──
+      apiStatus: 'loading',
+      lastChecked: '',
+      healthData: null,
+      visitorData: null,
+      selectedDate: '',
+      loading: false,
+      maxHits: 1,
+      openSections: { topIps: false, bots: false, paths: false, status: false, hourly: true },
+
+      // ── Init ──
+      async init() {
+        // Set today's date
+        const d = new Date();
+        this.selectedDate = d.toISOString().slice(0, 10);
+
+        // Fetch health
+        try {
+          const res = await fetch('https://oldhat.dev/api/v1/health');
+          this.healthData = await res.json();
+          this.apiStatus = 'ok';
+        } catch { this.apiStatus = 'offline'; }
+        this.lastChecked = new Date().toLocaleTimeString();
+
+        // Fetch latest report
+        await this.loadReport();
+      },
+
+      // ── Load report for selected date ──
+      async loadReport() {
+        this.loading = true;
+        try {
+          const res = await fetch(`https://oldhat.dev/api/v1/statistics/visitors?date=${this.selectedDate}`);
+          if (!res.ok) {
+            this.visitorData = null;
+            return;
+          }
+          this.visitorData = await res.json();
+
+          // Calculate max hits for hourly bars
+          if (this.visitorData?.data?.hourlyActivity?.length) {
+            this.maxHits = Math.max(...this.visitorData.data.hourlyActivity.map(h => h.hitCount), 1);
+          }
+        } catch { this.visitorData = null; }
+        this.loading = false;
+      },
+
+      // ── Helpers ──
+      statusClass(code) {
+        if (!code) return '';
+        if (code < 300) return 's2xx';
+        if (code < 500) return 's4xx';
+        return 's5xx';
+      },
+      pctHits(count) { return Math.max(3, (count / this.maxHits) * 100); },
+      pctBots(count) { return Math.max(1, (count / this.maxHits) * 100); },
+    }
+  }
+</script>
 </body>
 </html>
