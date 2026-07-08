@@ -3,11 +3,43 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>oldhat.dev · dashboard</title>
+    <title>oldhat.dev — live Nginx attack log dashboard</title>
     <meta
       name="description"
-      content="Server statistics dashboard for oldhat.dev"
+      content="Real-time Nginx traffic analysis: human visitors, bot crawlers, and automated attacks classified by threat category — .git probing, credential theft, WordPress scans, SQL injection, admin brute-force, config leaks. Geographic origins and hourly heatmaps."
     />
+    <meta property="og:title" content="oldhat.dev — live Nginx attack log dashboard" />
+    <meta property="og:description" content="Real-time traffic analysis: human visitors, bot crawlers, and automated attacks classified by threat category. Geographic origins, hourly heatmaps, and live Nginx log monitoring." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://oldhat.dev/" />
+    <meta property="og:site_name" content="oldhat.dev" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="oldhat.dev — live Nginx attack log dashboard" />
+    <meta name="twitter:description" content="See every bot, scanner, and SQLi probe hitting a real server. Updated every 30 seconds." />
+    <link rel="canonical" href="https://oldhat.dev/" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "oldhat.dev",
+      "url": "https://oldhat.dev/",
+      "description": "Live Nginx attack log dashboard showing real-time bot and human traffic, threat intelligence, and geographic attack origins.",
+      "about": {
+        "@type": "Thing",
+        "name": "Nginx access log analysis",
+        "description": "Real-time classification of HTTP requests into human, bot, and threat categories including .git probing, credential theft, WordPress scanning, SQL injection, admin brute-force, and configuration leak detection."
+      },
+      "author": {
+        "@type": "Person",
+        "name": "Oleg"
+      },
+      "keywords": [
+        "nginx log analysis", "bot detection", "threat intelligence",
+        "server monitoring", "attack dashboard", "web security",
+        "real-time traffic analysis", "honeypot dashboard"
+      ]
+    }
+    </script>
     <script
       defer
       src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"
@@ -67,7 +99,7 @@
         font-weight: 700;
         letter-spacing: -0.5px;
       }
-      .logo span {
+      .logo span, .logo-span {
         color: var(--accent);
       }
       .theme-toggle {
@@ -420,11 +452,16 @@
         ></div>
       </header>
 
-      <p style="margin: -8px 0 16px; font-size: 13px; color: var(--muted); line-height: 1.5">
-        Daily Nginx traffic analysis — human vs bot activity, attacker reconnaissance patterns,
-        geographic origins, threat category breakdowns (.git probing, credential theft, WordPress
-        scans, SQLi attempts, admin brute-force, config leaks), hourly traffic heatmaps,
-        and multi-domain coverage (oldhat.dev + api.oldhat.dev).
+      <h1 style="margin: 0 0 4px; font-size: 26px; font-weight: 700; letter-spacing: -0.5px; line-height: 1.3">
+        oldhat<span class="logo-span">.</span>dev — live Nginx attack log dashboard
+      </h1>
+      <p style="margin: 0 0 16px; font-size: 13px; color: var(--muted); line-height: 1.5">
+        Real-time traffic analysis showing human visitors, bot crawlers, and automated attacks
+        against a personal server. Every request is classified by threat category — .git probing,
+        credential theft (.env), WordPress scans, SQL injection attempts, admin brute-force, and
+        configuration leaks. Geographic origins, hourly traffic heatmaps, and multi-domain
+        coverage (oldhat.dev + api.oldhat.dev). Updated every 30 seconds from live Nginx logs.
+        Built with Alpine.js, FastAPI, and MySQL.
       </p>
 
       <!-- ── Status Bar + Date ── -->
@@ -666,6 +703,33 @@
             </div>
           </div>
         </template>
+      </div>
+
+      <!-- ── About (static, indexable by search engines) ── -->
+      <div style="margin: 32px 0 16px; padding-top: 24px; border-top: 1px solid var(--border)">
+        <h2 style="font-size: 15px; font-weight: 600; margin-bottom: 8px;">About oldhat.dev</h2>
+        <div style="font-size: 13px; color: var(--muted); line-height: 1.7">
+          <p style="margin-bottom: 8px">
+            oldhat.dev is a personal project that exposes a live view of what an internet-facing
+            server encounters every day. Every incoming HTTP request is categorised by threat
+            class — .git directory traversal, .env credential theft, WordPress vulnerability
+            scanning, SQL injection attempts, admin panel brute-force, and configuration file
+            leaks — alongside geographic origins and traffic type breakdowns.
+          </p>
+          <p style="margin-bottom: 8px">
+            The FastAPI backend and Alpine.js frontend serve this data with full history
+            browsable by date. The goal is simple: show exactly what attacks a typical
+            internet-facing server faces — no filters, no sanitised demo data, just
+            the raw reality of the modern web.
+          </p>
+          <p style="margin-bottom: 8px">
+            The code is open-source.
+          </p>
+          <p>
+            📬 <a href="https://github.com/oldhat" style="color: var(--accent); text-decoration: none;">GitHub</a>
+            · 🖥️ API: <code style="font-size: 12px; background: var(--border); padding: 1px 6px; border-radius: 4px;">api.oldhat.dev</code>
+          </p>
+        </div>
       </div>
 
       <footer>
