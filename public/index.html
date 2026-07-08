@@ -421,7 +421,10 @@
       </header>
 
       <p style="margin: -8px 0 16px; font-size: 13px; color: var(--muted); line-height: 1.5">
-        Daily report of bot and human activity from nginx access logs.
+        Daily Nginx traffic analysis — human vs bot activity, attacker reconnaissance patterns,
+        geographic origins, threat category breakdowns (.git probing, credential theft, WordPress
+        scans, SQLi attempts, admin brute-force, config leaks), hourly traffic heatmaps,
+        and multi-domain coverage (oldhat.dev + api.oldhat.dev).
       </p>
 
       <!-- ── Status Bar + Date ── -->
@@ -713,6 +716,12 @@
 
           // ── Init ──
           async init() {
+            console.log(
+              "%c👁️  You found the console. Congrats. %c\n\nThis dashboard looks clean, but behind it, bots and scanners hit this site every second — trying .git dumps, credential grabs, SQLi probes, admin brute-forces. The whole circus.\n\n%cWhat you're seeing is the aftermath — a live autopsy of every request, coded by malice, classified, and laid bare for anyone curious enough to look.\n\n🧙 oldhat.dev — making attack logs pretty since 2026.",
+              "font-size:24px; font-weight:bold; color:#60a5fa;",
+              "font-size:13px; line-height:1.6; color:#94a3b8;",
+              "font-size:13px; line-height:1.6; color:#a78bfa;"
+            );
             const d = new Date();
             this.selectedDate = d.toISOString().slice(0, 10);
             this.today = this.selectedDate;
