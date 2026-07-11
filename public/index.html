@@ -813,7 +813,7 @@
                 paths: { url: "/api/v1/statistics/html/paths", target: "#paths-table" },
                 status: { url: "/api/v1/statistics/html/status", target: "#status-grid" },
                 hourly: { url: "/api/v1/statistics/html/hourly", target: "#hourly-bars" },
-                threat: { url: "/api/v1/statistics/html/status", target: "#threat-grid" },
+                threat: { url: "/api/v1/statistics/html/threat", target: "#threat-grid" },
               };
               const s = map[name];
               if (s) await this.fetchAndSwap(s.url, s.target);
@@ -867,7 +867,7 @@
             if (this.openSections.status)
               loads.push(this.fetchAndSwap("/api/v1/statistics/html/status", "#status-grid"));
             if (this.openSections.threat)
-              loads.push(this.fetchAndSwap("/api/v1/statistics/html/status", "#threat-grid"));
+              loads.push(this.fetchAndSwap("/api/v1/statistics/html/threat", "#threat-grid"));
             if (this.openSections.hourly)
               loads.push(this.fetchAndSwap("/api/v1/statistics/html/hourly", "#hourly-bars"));
             await Promise.all(loads);
