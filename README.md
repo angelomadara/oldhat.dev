@@ -8,7 +8,7 @@ The Express API backend lives in a separate repository: [`~/Github/api-oldhat-de
 
 ```
 Browser → Cloudflare → Nginx
-                         └── oldhat.dev/ → /home/ubuntu/Github/oldhatdev/public/
+                         └── oldhat.dev/ → /oldhatdev-directory-location/
 ```
 
 ## Files
