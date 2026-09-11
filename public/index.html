@@ -480,18 +480,15 @@
           ></span>
         </div>
         <div class="date-picker">
-          <span style="font-size: 13px; color: var(--muted)"
-            >Date:</span
-          >
-          <input
-            type="date"
-            x-model="selectedDate"
-            :max="today"
-            @change="loadDay()"
-          />
-          <button @click="swapSections()">
-            Refresh
+          <span style="font-size: 13px; color: var(--muted)">Date:</span>
+          <input type="date" x-model="selectedDate" :max="today" @change="loadDay()" />
+
+          <!-- ADD THIS BUTTON -->
+          <button @click="toggleLive()" :style="isLive ? 'background: var(--red)' : 'background: var(--accent)'">
+            <span x-text="isLive ? '🔴 Stop Live' : '🟢 Go Live'"></span>
           </button>
+
+          <button @click="swapSections()">Refresh</button>
         </div>
       </div>
 
@@ -750,17 +747,10 @@
       function app() {
         return {
           // ── Theme ──
-          isDark:
-            localStorage.getItem("theme") === "dark" ||
-            (!localStorage.getItem("theme") &&
-              window.matchMedia("(prefers-color-scheme: dark)")
-                .matches),
+          isDark: localStorage.getItem("theme") === "dark" || (!localStorage.getItem("theme") && window.matchMedia("(prefers-color-scheme: dark)").matches),
           toggleTheme() {
             this.isDark = !this.isDark;
-            localStorage.setItem(
-              "theme",
-              this.isDark ? "dark" : "light",
-            );
+            localStorage.setItem("theme", this.isDark ? "dark" : "light");
           },
 
           // ── State ──
@@ -769,6 +759,8 @@
           healthData: null,
           selectedDate: "",
           today: "",
+          isLive: false,             // SSE state
+          sseConnection: null,       // SSE object reference
           openSections: {
             topIps: false,
             bots: false,
@@ -780,30 +772,63 @@
 
           // ── Init ──
           async init() {
-            console.log(
-              "%c👁️  You found the console. Congrats. %c\n\nThis dashboard looks clean, but behind it, bots and scanners hit this site every second — trying .git dumps, credential grabs, SQLi probes, admin brute-forces. The whole circus.\n\n%cWhat you're seeing is the aftermath — a live autopsy of every request, coded by malice, classified, and laid bare for anyone curious enough to look.\n\n🧙 oldhat.dev — making attack logs pretty since 2026.",
-              "font-size:24px; font-weight:bold; color:#60a5fa;",
-              "font-size:13px; line-height:1.6; color:#94a3b8;",
-              "font-size:13px; line-height:1.6; color:#a78bfa;"
-            );
             const d = new Date();
             this.selectedDate = d.toISOString().slice(0, 10);
             this.today = this.selectedDate;
             try {
-              const res = await fetch(
-                "https://oldhat.dev/api/v1/health",
-              );
+              const res = await fetch("https://oldhat.dev/api/v1/health");
               this.healthData = await res.json();
               this.apiStatus = "ok";
             } catch {
               this.apiStatus = "offline";
             }
             this.lastChecked = new Date().toLocaleTimeString();
-            // Load stats grid and any sections open by default
             await this.swapSections();
           },
 
-          // ── Section toggle → fetch data when opening ──
+          // ── SSE Logic ──
+          toggleLive() {
+            this.isLive = !this.isLive;
+            if (this.isLive) {
+              this.setupSSE();
+            } else {
+              if (this.sseConnection) {
+                this.sseConnection.close();
+                this.sseConnection = null;
+              }
+            }
+          },
+
+          setupSSE() {
+            // Close any existing connection first
+            if (this.sseConnection) this.sseConnection.close();
+
+            const url = `/api/v1/statistics/sse?date=${this.selectedDate}`;
+            this.sseConnection = new EventSource(url);
+
+            this.sseConnection.onmessage = (event) => {
+              try {
+                const data = JSON.parse(event.data);
+                console.log("SSE Update received:", data);
+
+                // If the server tells us data has changed, refresh visible sections
+                if (data.type === "update") {
+                  this.swapSections();
+                  this.lastChecked = new Date().toLocaleTimeString();
+                }
+              } catch (e) {
+                console.error("Error parsing SSE data", e);
+              }
+            };
+
+            this.sseConnection.onerror = (err) => {
+              console.warn("SSE connection lost. Retrying...");
+              // Alpine/Browser will automatically try to reconnect EventSource
+              // unless we explicitly call .close()
+            };
+          },
+
+          // ── Section toggle ──
           async openSection(name) {
             this.openSections[name] = !this.openSections[name];
             if (this.openSections[name]) {
@@ -813,19 +838,21 @@
                 paths: { url: "/api/v1/statistics/html/paths", target: "#paths-table" },
                 status: { url: "/api/v1/statistics/html/status", target: "#status-grid" },
                 hourly: { url: "/api/v1/statistics/html/hourly", target: "#hourly-bars" },
-                threat: { url: "/api/v1/statistics/html/threat", target: "#threat-grid" },
+                threat: { url: "/api/v1/statistics/html/status", target: "#threat-grid" },
               };
               const s = map[name];
               if (s) await this.fetchAndSwap(s.url, s.target);
             }
           },
 
-          // ── Date change → reload all visible sections ──
           loadDay() {
+            // Restart SSE connection with new date if live
+            if (this.isLive) {
+              this.setupSSE();
+            }
             this.swapSections();
           },
 
-          // ── Fetch HTML and swap into DOM ──
           async fetchAndSwap(url, target, swap = "innerHTML") {
             const date = this.selectedDate;
             try {
@@ -834,7 +861,6 @@
               });
               if (!res.ok) throw new Error(res.status);
               let html = await res.text();
-              // Ensure the target element keeps its id after swap
               if (swap === "outerHTML" && !html.includes(`id="${target.slice(1)}"`)) {
                 html = `<div id="${target.slice(1)}">${html}</div>`;
               }
@@ -850,26 +876,15 @@
             }
           },
 
-          // ── Refresh / date change: reload all visible sections ──
           async swapSections() {
-            await this.fetchAndSwap(
-              "/api/v1/statistics/html/summary",
-              "#stats-grid",
-              "outerHTML",
-            );
+            await this.fetchAndSwap("/api/v1/statistics/html/summary", "#stats-grid", "outerHTML");
             const loads = [];
-            if (this.openSections.topIps)
-              loads.push(this.fetchAndSwap("/api/v1/statistics/html/top-ips", "#top-ips-table"));
-            if (this.openSections.bots)
-              loads.push(this.fetchAndSwap("/api/v1/statistics/html/bots", "#bots-table"));
-            if (this.openSections.paths)
-              loads.push(this.fetchAndSwap("/api/v1/statistics/html/paths", "#paths-table"));
-            if (this.openSections.status)
-              loads.push(this.fetchAndSwap("/api/v1/statistics/html/status", "#status-grid"));
-            if (this.openSections.threat)
-              loads.push(this.fetchAndSwap("/api/v1/statistics/html/threat", "#threat-grid"));
-            if (this.openSections.hourly)
-              loads.push(this.fetchAndSwap("/api/v1/statistics/html/hourly", "#hourly-bars"));
+            if (this.openSections.topIps) loads.push(this.fetchAndSwap("/api/v1/statistics/html/top-ips", "#top-ips-table"));
+            if (this.openSections.bots) loads.push(this.fetchAndSwap("/api/v1/statistics/html/bots", "#bots-table"));
+            if (this.openSections.paths) loads.push(this.fetchAndSwap("/api/v1/statistics/html/paths", "#paths-table"));
+            if (this.openSections.status) loads.push(this.fetchAndSwap("/api/v1/statistics/html/status", "#status-grid"));
+            if (this.openSections.threat) loads.push(this.fetchAndSwap("/api/v1/statistics/html/status", "#threat-grid"));
+            if (this.openSections.hourly) loads.push(this.fetchAndSwap("/api/v1/statistics/html/hourly", "#hourly-bars"));
             await Promise.all(loads);
           },
         };
