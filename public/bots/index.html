@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Bot Breakdown — crawlers and scanners | oldhat.dev</title>
+    <meta
+      name="description"
+      content="Which crawlers, scrapers and vulnerability scanners request oldhat.dev most often, ranked by total hits and unique IP addresses."
+    />
+    <meta property="og:title" content="Bot Breakdown — crawlers and scanners | oldhat.dev" />
+    <meta property="og:description" content="Automated clients hitting a real server, ranked by hits and unique IP addresses." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://oldhat.dev/bots/" />
+    <meta property="og:site_name" content="oldhat.dev" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Bot Breakdown — crawlers and scanners | oldhat.dev" />
+    <meta name="twitter:description" content="Python-requests, curl, search crawlers and scanners — ranked live." />
+    <link rel="canonical" href="https://oldhat.dev/bots/" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Overview", "item": "https://oldhat.dev/" },
+        { "@type": "ListItem", "position": 2, "name": "Bot Breakdown" }
+      ]
+    }
+    </script>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="stylesheet" href="/assets/site.css" />
+    <script defer src="/assets/site.js"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"
+    ></script>
+  </head>
+  <body x-data="dashboard('bots')" x-init="init()">
+    <div class="container">
+      <!-- ── Header ──────────── -->
+      <header>
+        <a href="/" class="logo">oldhat<span>.</span>dev</a>
+        <div
+          class="theme-toggle"
+          @click="toggleTheme()"
+          x-text="isDark ? '☀️ Light' : '🌙 Dark'"
+        ></div>
+      </header>
+
+      <!-- ── Section navigation ── -->
+      <nav class="site-nav" aria-label="Report sections">
+        <a href="/" class="nav-link">Overview</a>
+        <a href="/threat/" class="nav-link">🛡️ Threat</a>
+        <a href="/top-ips/" class="nav-link">🌐 Top IPs</a>
+        <a href="/bots/" class="nav-link nav-link--active" aria-current="page">🤖 Bots</a>
+        <a href="/paths/" class="nav-link">📁 Paths</a>
+        <a href="/status-codes/" class="nav-link">📊 Status</a>
+        <a href="/hourly/" class="nav-link">⏰ Hourly</a>
+      </nav>
+
+      <h1 class="page-title">Bot Breakdown</h1>
+      <p class="page-sub">
+        Automated clients identified from the Nginx user-agent string, ranked by hits.
+        Unique IPs shows how many distinct addresses reported that same user-agent.
+      </p>
+
+      <!-- ── Status Bar + Date ── -->
+      <div class="status-bar">
+        <div class="status-badge">
+          <span
+            class="status-dot"
+            :class="apiStatus === 'ok' ? 'online' : 'offline'"
+          ></span>
+          <span
+            x-text="apiStatus === 'ok' ? 'API Online' : (apiStatus === 'loading' ? 'Checking...' : 'API Offline')"
+          ></span>
+          <span style="color: var(--muted); font-weight: 400" x-text="lastChecked"></span>
+        </div>
+        <div class="date-picker">
+          <span style="font-size: 13px; color: var(--muted)">Date:</span>
+          <input type="date" x-model="selectedDate" :max="today" @change="loadDay()" />
+          <button
+            @click="toggleLive()"
+            :style="isLive ? 'background: var(--red)' : 'background: var(--accent)'"
+            x-text="isLive ? '🔴 Stop Live' : '🟢 Go Live'"
+          ></button>
+          <button @click="refresh()">Refresh</button>
+        </div>
+      </div>
+
+      <div class="error-note" x-cloak x-show="loadError">
+        Could not reach the statistics API. Press Refresh to try again.
+      </div>
+
+      <!-- ── Bot table ── -->
+      <div class="section">
+        <div class="card card--table">
+          <div id="section-body">
+            <div class="skeleton" style="height: 160px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Static explainer (indexable) ── -->
+      <div class="about">
+        <h2>Reading this table</h2>
+        <div class="about-body">
+          <p>
+            A user-agent claiming many hits from a single IP is usually one host running a
+            script, while the same name spread across many IPs suggests a distributed
+            crawler or a fleet of cloud workers. Well-behaved search engines identify
+            themselves; scanners frequently spoof or omit the user-agent entirely, which
+            is why generic library names like <code>Python-requests</code> and
+            <code>curl</code> appear near the top.
+          </p>
+          <p>Related sections:</p>
+          <ul class="related">
+            <li><a href="/threat/">Threat Intelligence</a></li>
+            <li><a href="/top-ips/">Top IPs</a></li>
+            <li><a href="/paths/">Path Activity</a></li>
+            <li><a href="/status-codes/">Status Codes</a></li>
+            <li><a href="/hourly/">Hourly Activity</a></li>
+            <li><a href="/">Overview</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <footer>
+        <p>
+          oldhat.dev ·
+          <a href="https://api.oldhat.dev/v1/health" target="_blank" rel="noopener"
+            >API Health</a
+          >
+          ·
+          <a href="https://github.com/angelomadara" target="_blank" rel="noopener"
+            >GitHub</a
+          >
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Hourly Activity — traffic by hour | oldhat.dev</title>
+    <meta
+      name="description"
+      content="Hour-by-hour request volume on oldhat.dev, split between total hits and bot traffic, showing when automated scanning and human visits peak."
+    />
+    <meta property="og:title" content="Hourly Activity — traffic by hour | oldhat.dev" />
+    <meta property="og:description" content="Request volume per hour of the day on a real server, split between human and bot traffic." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://oldhat.dev/hourly/" />
+    <meta property="og:site_name" content="oldhat.dev" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Hourly Activity — traffic by hour | oldhat.dev" />
+    <meta name="twitter:description" content="When humans visit, and when the bots do not sleep." />
+    <link rel="canonical" href="https://oldhat.dev/hourly/" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Overview", "item": "https://oldhat.dev/" },
+        { "@type": "ListItem", "position": 2, "name": "Hourly Activity" }
+      ]
+    }
+    </script>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="stylesheet" href="/assets/site.css" />
+    <script defer src="/assets/site.js"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"
+    ></script>
+  </head>
+  <body x-data="dashboard('hourly')" x-init="init()">
+    <div class="container">
+      <!-- ── Header ──────────── -->
+      <header>
+        <a href="/" class="logo">oldhat<span>.</span>dev</a>
+        <div
+          class="theme-toggle"
+          @click="toggleTheme()"
+          x-text="isDark ? '☀️ Light' : '🌙 Dark'"
+        ></div>
+      </header>
+
+      <!-- ── Section navigation ── -->
+      <nav class="site-nav" aria-label="Report sections">
+        <a href="/" class="nav-link">Overview</a>
+        <a href="/threat/" class="nav-link">🛡️ Threat</a>
+        <a href="/top-ips/" class="nav-link">🌐 Top IPs</a>
+        <a href="/bots/" class="nav-link">🤖 Bots</a>
+        <a href="/paths/" class="nav-link">📁 Paths</a>
+        <a href="/status-codes/" class="nav-link">📊 Status</a>
+        <a href="/hourly/" class="nav-link nav-link--active" aria-current="page">⏰ Hourly</a>
+      </nav>
+
+      <h1 class="page-title">Hourly Activity</h1>
+      <p class="page-sub">
+        Requests per hour of the day in server time for the selected date. Each row shows
+        the total hits for that hour and how many of them came from bots.
+      </p>
+
+      <!-- ── Status Bar + Date ── -->
+      <div class="status-bar">
+        <div class="status-badge">
+          <span
+            class="status-dot"
+            :class="apiStatus === 'ok' ? 'online' : 'offline'"
+          ></span>
+          <span
+            x-text="apiStatus === 'ok' ? 'API Online' : (apiStatus === 'loading' ? 'Checking...' : 'API Offline')"
+          ></span>
+          <span style="color: var(--muted); font-weight: 400" x-text="lastChecked"></span>
+        </div>
+        <div class="date-picker">
+          <span style="font-size: 13px; color: var(--muted)">Date:</span>
+          <input type="date" x-model="selectedDate" :max="today" @change="loadDay()" />
+          <button
+            @click="toggleLive()"
+            :style="isLive ? 'background: var(--red)' : 'background: var(--accent)'"
+            x-text="isLive ? '🔴 Stop Live' : '🟢 Go Live'"
+          ></button>
+          <button @click="refresh()">Refresh</button>
+        </div>
+      </div>
+
+      <div class="error-note" x-cloak x-show="loadError">
+        Could not reach the statistics API. Press Refresh to try again.
+      </div>
+
+      <!-- ── Hourly bars ── -->
+      <div class="section">
+        <div class="card">
+          <div id="section-body">
+            <div class="skeleton" style="height: 320px"></div>
+          </div>
+          <div class="legend">
+            <span><i class="swatch-hits"></i> Hits</span>
+            <span><i class="swatch-bots"></i> Bots</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Static explainer (indexable) ── -->
+      <div class="about">
+        <h2>Reading these bars</h2>
+        <div class="about-body">
+          <p>
+            Human traffic usually follows the local day — quiet overnight, busier in the
+            evening. Bot traffic does not sleep: a flat band of requests across the small
+            hours is the normal background radiation of the public internet. Spikes in the
+            bot bars at a single hour often line up with scans visible in the
+            <a href="/paths/">path activity</a> for the same date.
+          </p>
+          <p>Related sections:</p>
+          <ul class="related">
+            <li><a href="/threat/">Threat Intelligence</a></li>
+            <li><a href="/top-ips/">Top IPs</a></li>
+            <li><a href="/bots/">Bot Breakdown</a></li>
+            <li><a href="/paths/">Path Activity</a></li>
+            <li><a href="/status-codes/">Status Codes</a></li>
+            <li><a href="/">Overview</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <footer>
+        <p>
+          oldhat.dev ·
+          <a href="https://api.oldhat.dev/v1/health" target="_blank" rel="noopener"
+            >API Health</a
+          >
+          ·
+          <a href="https://github.com/angelomadara" target="_blank" rel="noopener"
+            >GitHub</a
+          >
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

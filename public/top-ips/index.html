@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Top IPs — busiest clients by country | oldhat.dev</title>
+    <meta
+      name="description"
+      content="The most active IP addresses hitting oldhat.dev, with GeoIP country, request volume, human or bot classification, bot name, most requested path and most common status code."
+    />
+    <meta property="og:title" content="Top IPs — busiest clients by country | oldhat.dev" />
+    <meta property="og:description" content="The busiest client addresses hitting a real server, with country, volume and client type." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://oldhat.dev/top-ips/" />
+    <meta property="og:site_name" content="oldhat.dev" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Top IPs — busiest clients by country | oldhat.dev" />
+    <meta name="twitter:description" content="Who is hammering the server, and what were they looking for?" />
+    <link rel="canonical" href="https://oldhat.dev/top-ips/" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Overview", "item": "https://oldhat.dev/" },
+        { "@type": "ListItem", "position": 2, "name": "Top IPs" }
+      ]
+    }
+    </script>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="stylesheet" href="/assets/site.css" />
+    <script defer src="/assets/site.js"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"
+    ></script>
+  </head>
+  <body x-data="dashboard('topIps')" x-init="init()">
+    <div class="container">
+      <!-- ── Header ──────────── -->
+      <header>
+        <a href="/" class="logo">oldhat<span>.</span>dev</a>
+        <div
+          class="theme-toggle"
+          @click="toggleTheme()"
+          x-text="isDark ? '☀️ Light' : '🌙 Dark'"
+        ></div>
+      </header>
+
+      <!-- ── Section navigation ── -->
+      <nav class="site-nav" aria-label="Report sections">
+        <a href="/" class="nav-link">Overview</a>
+        <a href="/threat/" class="nav-link">🛡️ Threat</a>
+        <a href="/top-ips/" class="nav-link nav-link--active" aria-current="page">🌐 Top IPs</a>
+        <a href="/bots/" class="nav-link">🤖 Bots</a>
+        <a href="/paths/" class="nav-link">📁 Paths</a>
+        <a href="/status-codes/" class="nav-link">📊 Status</a>
+        <a href="/hourly/" class="nav-link">⏰ Hourly</a>
+      </nav>
+
+      <h1 class="page-title">Top IPs</h1>
+      <p class="page-sub">
+        The busiest client addresses for the selected date. Addresses are masked in the
+        last two octets; the Country column comes from a GeoIP lookup, and the Type column
+        marks each client as human or bot.
+      </p>
+
+      <!-- ── Status Bar + Date ── -->
+      <div class="status-bar">
+        <div class="status-badge">
+          <span
+            class="status-dot"
+            :class="apiStatus === 'ok' ? 'online' : 'offline'"
+          ></span>
+          <span
+            x-text="apiStatus === 'ok' ? 'API Online' : (apiStatus === 'loading' ? 'Checking...' : 'API Offline')"
+          ></span>
+          <span style="color: var(--muted); font-weight: 400" x-text="lastChecked"></span>
+        </div>
+        <div class="date-picker">
+          <span style="font-size: 13px; color: var(--muted)">Date:</span>
+          <input type="date" x-model="selectedDate" :max="today" @change="loadDay()" />
+          <button
+            @click="toggleLive()"
+            :style="isLive ? 'background: var(--red)' : 'background: var(--accent)'"
+            x-text="isLive ? '🔴 Stop Live' : '🟢 Go Live'"
+          ></button>
+          <button @click="refresh()">Refresh</button>
+        </div>
+      </div>
+
+      <div class="error-note" x-cloak x-show="loadError">
+        Could not reach the statistics API. Press Refresh to try again.
+      </div>
+
+      <!-- ── Top IP table ── -->
+      <div class="section">
+        <div class="card card--table">
+          <div id="section-body">
+            <div class="skeleton" style="height: 240px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Static explainer (indexable) ── -->
+      <div class="about">
+        <h2>Reading this table</h2>
+        <div class="about-body">
+          <p>
+            High request counts from a single address usually mean a crawler or a scanner
+            working through a wordlist. The Top Path column shows what that client was
+            most interested in, and Top Status shows whether it found anything — a wall of
+            404s from one IP is a scanner being told no.
+          </p>
+          <p>Related sections:</p>
+          <ul class="related">
+            <li><a href="/threat/">Threat Intelligence</a></li>
+            <li><a href="/bots/">Bot Breakdown</a></li>
+            <li><a href="/paths/">Path Activity</a></li>
+            <li><a href="/status-codes/">Status Codes</a></li>
+            <li><a href="/hourly/">Hourly Activity</a></li>
+            <li><a href="/">Overview</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <footer>
+        <p>
+          oldhat.dev ·
+          <a href="https://api.oldhat.dev/v1/health" target="_blank" rel="noopener"
+            >API Health</a
+          >
+          ·
+          <a href="https://github.com/angelomadara" target="_blank" rel="noopener"
+            >GitHub</a
+          >
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

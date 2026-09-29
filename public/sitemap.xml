@@ -5,4 +5,34 @@
     <changefreq>always</changefreq>
     <priority>1.0</priority>
   </url>
+  <url>
+    <loc>https://oldhat.dev/threat/</loc>
+    <changefreq>always</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://oldhat.dev/top-ips/</loc>
+    <changefreq>always</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://oldhat.dev/bots/</loc>
+    <changefreq>always</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://oldhat.dev/paths/</loc>
+    <changefreq>always</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://oldhat.dev/status-codes/</loc>
+    <changefreq>always</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://oldhat.dev/hourly/</loc>
+    <changefreq>always</changefreq>
+    <priority>0.8</priority>
+  </url>
 </urlset>

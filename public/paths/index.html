@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Path Activity — most requested URLs | oldhat.dev</title>
+    <meta
+      name="description"
+      content="The most requested paths on oldhat.dev with hit counts, unique IPs, a 200/404/other response split and threat category labels such as .git, .env and WordPress probing."
+    />
+    <meta property="og:title" content="Path Activity — most requested URLs | oldhat.dev" />
+    <meta property="og:description" content="Which URLs are requested most, and how many of those requests were probing for files that don't exist." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://oldhat.dev/paths/" />
+    <meta property="og:site_name" content="oldhat.dev" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Path Activity — most requested URLs | oldhat.dev" />
+    <meta name="twitter:description" content="Requested paths ranked by volume, with status mix and threat category." />
+    <link rel="canonical" href="https://oldhat.dev/paths/" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Overview", "item": "https://oldhat.dev/" },
+        { "@type": "ListItem", "position": 2, "name": "Path Activity" }
+      ]
+    }
+    </script>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="stylesheet" href="/assets/site.css" />
+    <script defer src="/assets/site.js"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"
+    ></script>
+  </head>
+  <body x-data="dashboard('paths')" x-init="init()">
+    <div class="container">
+      <!-- ── Header ──────────── -->
+      <header>
+        <a href="/" class="logo">oldhat<span>.</span>dev</a>
+        <div
+          class="theme-toggle"
+          @click="toggleTheme()"
+          x-text="isDark ? '☀️ Light' : '🌙 Dark'"
+        ></div>
+      </header>
+
+      <!-- ── Section navigation ── -->
+      <nav class="site-nav" aria-label="Report sections">
+        <a href="/" class="nav-link">Overview</a>
+        <a href="/threat/" class="nav-link">🛡️ Threat</a>
+        <a href="/top-ips/" class="nav-link">🌐 Top IPs</a>
+        <a href="/bots/" class="nav-link">🤖 Bots</a>
+        <a href="/paths/" class="nav-link nav-link--active" aria-current="page">📁 Paths</a>
+        <a href="/status-codes/" class="nav-link">📊 Status</a>
+        <a href="/hourly/" class="nav-link">⏰ Hourly</a>
+      </nav>
+
+      <h1 class="page-title">Path Activity</h1>
+      <p class="page-sub">
+        Requested URLs ranked by hit count for the selected date, with the response-code
+        split and the threat category each path was classified into.
+      </p>
+
+      <!-- ── Status Bar + Date ── -->
+      <div class="status-bar">
+        <div class="status-badge">
+          <span
+            class="status-dot"
+            :class="apiStatus === 'ok' ? 'online' : 'offline'"
+          ></span>
+          <span
+            x-text="apiStatus === 'ok' ? 'API Online' : (apiStatus === 'loading' ? 'Checking...' : 'API Offline')"
+          ></span>
+          <span style="color: var(--muted); font-weight: 400" x-text="lastChecked"></span>
+        </div>
+        <div class="date-picker">
+          <span style="font-size: 13px; color: var(--muted)">Date:</span>
+          <input type="date" x-model="selectedDate" :max="today" @change="loadDay()" />
+          <button
+            @click="toggleLive()"
+            :style="isLive ? 'background: var(--red)' : 'background: var(--accent)'"
+            x-text="isLive ? '🔴 Stop Live' : '🟢 Go Live'"
+          ></button>
+          <button @click="refresh()">Refresh</button>
+        </div>
+      </div>
+
+      <div class="error-note" x-cloak x-show="loadError">
+        Could not reach the statistics API. Press Refresh to try again.
+      </div>
+
+      <!-- ── Paths table ── -->
+      <div class="section">
+        <div class="card card--table">
+          <div id="section-body">
+            <div class="skeleton" style="height: 320px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Static explainer (indexable) ── -->
+      <div class="about">
+        <h2>Reading this table</h2>
+        <div class="about-body">
+          <p>
+            The 200 and 404 columns are the interesting ones. A path with many hits and
+            almost all 404s is being probed and rejected — the signature of automated
+            reconnaissance. Popular legitimate paths such as <code>/</code> and the API
+            endpoints show up as 200s. The Category column links each path back to the
+            threat classes on the
+            <a href="/threat/">Threat Intelligence</a> page.
+          </p>
+          <p>Related sections:</p>
+          <ul class="related">
+            <li><a href="/threat/">Threat Intelligence</a></li>
+            <li><a href="/top-ips/">Top IPs</a></li>
+            <li><a href="/bots/">Bot Breakdown</a></li>
+            <li><a href="/status-codes/">Status Codes</a></li>
+            <li><a href="/hourly/">Hourly Activity</a></li>
+            <li><a href="/">Overview</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <footer>
+        <p>
+          oldhat.dev ·
+          <a href="https://api.oldhat.dev/v1/health" target="_blank" rel="noopener"
+            >API Health</a
+          >
+          ·
+          <a href="https://github.com/angelomadara" target="_blank" rel="noopener"
+            >GitHub</a
+          >
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

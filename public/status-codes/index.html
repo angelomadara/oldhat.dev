@@ -1,0 +1,143 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Status Code Distribution | oldhat.dev</title>
+    <meta
+      name="description"
+      content="HTTP response distribution across oldhat.dev — how many requests return 2xx, 3xx, 4xx and 5xx for the selected date, showing how much traffic is probing for things that don't exist."
+    />
+    <meta property="og:title" content="Status Code Distribution | oldhat.dev" />
+    <meta property="og:description" content="How many requests a real server answers with 200, 304, 404 and 500 — and how much of it is scanners." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://oldhat.dev/status-codes/" />
+    <meta property="og:site_name" content="oldhat.dev" />
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content="Status Code Distribution | oldhat.dev" />
+    <meta name="twitter:description" content="2xx, 3xx, 4xx and 5xx response counts from live Nginx logs." />
+    <link rel="canonical" href="https://oldhat.dev/status-codes/" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      "itemListElement": [
+        { "@type": "ListItem", "position": 1, "name": "Overview", "item": "https://oldhat.dev/" },
+        { "@type": "ListItem", "position": 2, "name": "Status Code Distribution" }
+      ]
+    }
+    </script>
+    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
+    <link rel="stylesheet" href="/assets/site.css" />
+    <script defer src="/assets/site.js"></script>
+    <script
+      defer
+      src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"
+    ></script>
+  </head>
+  <body x-data="dashboard('status')" x-init="init()">
+    <div class="container">
+      <!-- ── Header ──────────── -->
+      <header>
+        <a href="/" class="logo">oldhat<span>.</span>dev</a>
+        <div
+          class="theme-toggle"
+          @click="toggleTheme()"
+          x-text="isDark ? '☀️ Light' : '🌙 Dark'"
+        ></div>
+      </header>
+
+      <!-- ── Section navigation ── -->
+      <nav class="site-nav" aria-label="Report sections">
+        <a href="/" class="nav-link">Overview</a>
+        <a href="/threat/" class="nav-link">🛡️ Threat</a>
+        <a href="/top-ips/" class="nav-link">🌐 Top IPs</a>
+        <a href="/bots/" class="nav-link">🤖 Bots</a>
+        <a href="/paths/" class="nav-link">📁 Paths</a>
+        <a href="/status-codes/" class="nav-link nav-link--active" aria-current="page">📊 Status</a>
+        <a href="/hourly/" class="nav-link">⏰ Hourly</a>
+      </nav>
+
+      <h1 class="page-title">Status Code Distribution</h1>
+      <p class="page-sub">
+        Response codes returned by Nginx for the selected date, grouped by class. Green is
+        a success, blue a redirect, orange a client error, and red a server error.
+      </p>
+
+      <!-- ── Status Bar + Date ── -->
+      <div class="status-bar">
+        <div class="status-badge">
+          <span
+            class="status-dot"
+            :class="apiStatus === 'ok' ? 'online' : 'offline'"
+          ></span>
+          <span
+            x-text="apiStatus === 'ok' ? 'API Online' : (apiStatus === 'loading' ? 'Checking...' : 'API Offline')"
+          ></span>
+          <span style="color: var(--muted); font-weight: 400" x-text="lastChecked"></span>
+        </div>
+        <div class="date-picker">
+          <span style="font-size: 13px; color: var(--muted)">Date:</span>
+          <input type="date" x-model="selectedDate" :max="today" @change="loadDay()" />
+          <button
+            @click="toggleLive()"
+            :style="isLive ? 'background: var(--red)' : 'background: var(--accent)'"
+            x-text="isLive ? '🔴 Stop Live' : '🟢 Go Live'"
+          ></button>
+          <button @click="refresh()">Refresh</button>
+        </div>
+      </div>
+
+      <div class="error-note" x-cloak x-show="loadError">
+        Could not reach the statistics API. Press Refresh to try again.
+      </div>
+
+      <!-- ── Status code tiles ── -->
+      <div class="section">
+        <div class="card">
+          <div id="section-body" class="threat-grid">
+            <div class="skeleton" style="height: 72px"></div>
+            <div class="skeleton" style="height: 72px"></div>
+            <div class="skeleton" style="height: 72px"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── Static explainer (indexable) ── -->
+      <div class="about">
+        <h2>What the numbers mean</h2>
+        <div class="about-body">
+          <p>
+            A healthy static site is dominated by 2xx and 304 responses. A large 4xx share
+            is expected here: it is the sound of automated scanners asking for files that
+            were never there — <code>/.env</code>, <code>/wp-login.php</code>,
+            <code>/.git/config</code>. Any sustained 5xx traffic is the one thing worth
+            investigating, since it means the server itself failed to answer.
+          </p>
+          <p>Related sections:</p>
+          <ul class="related">
+            <li><a href="/threat/">Threat Intelligence</a></li>
+            <li><a href="/top-ips/">Top IPs</a></li>
+            <li><a href="/bots/">Bot Breakdown</a></li>
+            <li><a href="/paths/">Path Activity</a></li>
+            <li><a href="/hourly/">Hourly Activity</a></li>
+            <li><a href="/">Overview</a></li>
+          </ul>
+        </div>
+      </div>
+
+      <footer>
+        <p>
+          oldhat.dev ·
+          <a href="https://api.oldhat.dev/v1/health" target="_blank" rel="noopener"
+            >API Health</a
+          >
+          ·
+          <a href="https://github.com/angelomadara" target="_blank" rel="noopener"
+            >GitHub</a
+          >
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>
