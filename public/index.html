@@ -17,36 +17,66 @@
     <meta name="twitter:title" content="oldhat.dev — live Nginx attack log dashboard" />
     <meta name="twitter:description" content="See every bot, scanner, and SQLi probe hitting a real server. Updated every 30 seconds." />
     <link rel="canonical" href="https://oldhat.dev/" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/assets/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+    <meta property="og:image" content="https://oldhat.dev/assets/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="oldhat.dev — live Nginx attack log dashboard with bot, scanner and threat breakdowns" />
+    <meta name="twitter:image" content="https://oldhat.dev/assets/og-image.png" />
     <script type="application/ld+json">
     {
       "@context": "https://schema.org",
-      "@type": "WebSite",
-      "name": "oldhat.dev",
-      "url": "https://oldhat.dev/",
-      "description": "Live Nginx attack log dashboard showing real-time bot and human traffic, threat intelligence, and geographic attack origins.",
-      "about": {
-        "@type": "Thing",
-        "name": "Nginx access log analysis",
-        "description": "Real-time classification of HTTP requests into human, bot, and threat categories including .git probing, credential theft, WordPress scanning, SQL injection, admin brute-force, and configuration leak detection."
-      },
-      "author": {
-        "@type": "Person",
-        "name": "Oleg"
-      },
-      "keywords": [
-        "nginx log analysis", "bot detection", "threat intelligence",
-        "server monitoring", "attack dashboard", "web security",
-        "real-time traffic analysis", "honeypot dashboard"
+      "@graph": [
+        {
+          "@type": "WebSite",
+          "@id": "https://oldhat.dev/#website",
+          "url": "https://oldhat.dev/",
+          "name": "oldhat.dev",
+          "alternateName": [
+            "oldhat",
+            "oldhat dev",
+            "oldhat.dev dashboard"
+          ],
+          "description": "Real-time Nginx traffic analysis: human visitors, bot crawlers, and automated attacks classified by threat category — .git probing, credential theft, WordPress scans, SQL injection, admin brute-force, config leaks. Geographic origins and hourly heatmaps.",
+          "inLanguage": "en",
+          "publisher": {
+            "@id": "https://oldhat.dev/#person"
+          },
+          "about": {
+            "@type": "Thing",
+            "name": "Nginx access log analysis",
+            "description": "Real-time classification of HTTP requests into human, bot and threat categories including .git probing, credential theft, WordPress scanning, SQL injection, admin brute-force and configuration leak detection."
+          },
+          "keywords": [
+            "nginx log analysis",
+            "bot detection",
+            "threat intelligence",
+            "server monitoring",
+            "attack dashboard",
+            "web security",
+            "real-time traffic analysis",
+            "honeypot dashboard"
+          ]
+        },
+        {
+          "@type": "Person",
+          "@id": "https://oldhat.dev/#person",
+          "name": "angelomadara",
+          "url": "https://github.com/angelomadara",
+          "sameAs": [
+            "https://github.com/angelomadara",
+            "https://github.com/angelomadara/oldhat.dev"
+          ]
+        }
       ]
     }
     </script>
-    <link rel="preconnect" href="https://cdn.jsdelivr.net" crossorigin />
     <link rel="stylesheet" href="/assets/site.css" />
     <script defer src="/assets/site.js"></script>
-    <script
-      defer
-      src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.9/dist/cdn.min.js"
-    ></script>
+    <script defer src="/assets/alpine.min.js"></script>
   </head>
   <body x-data="dashboard(null)" x-init="init()">
     <div class="container">
@@ -69,6 +99,7 @@
         <a href="/paths/" class="nav-link">📁 Paths</a>
         <a href="/status-codes/" class="nav-link">📊 Status</a>
         <a href="/hourly/" class="nav-link">⏰ Hourly</a>
+        <a href="/about/" class="nav-link">ℹ️ About</a>
       </nav>
 
       <h1 class="page-title">

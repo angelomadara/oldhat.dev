@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About oldhat.dev — what this dashboard is and how it classifies traffic</title>
+    <meta
+      name="description"
+      content="About oldhat.dev: a live, unfiltered dashboard built on the Nginx access logs of oldhat.dev and api.oldhat.dev. How requests are classified into bot, human and threat categories, what the numbers do and do not mean, and where the data comes from."
+    />
+    <meta property="og:title" content="About oldhat.dev — what this dashboard is and how it classifies traffic" />
+    <meta property="og:description" content="A live, unfiltered view of the HTTP traffic hitting a small production server — crawlers, scanners, credential harvesters and human visitors." />
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://oldhat.dev/about/" />
+    <meta property="og:site_name" content="oldhat.dev" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="About oldhat.dev — what this dashboard is" />
+    <meta name="twitter:description" content="How oldhat.dev classifies bot, human and attack traffic from live Nginx logs." />
+    <link rel="canonical" href="https://oldhat.dev/about/" />
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1" />
+    <link rel="icon" href="/assets/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/assets/favicon.ico" sizes="any" />
+    <link rel="apple-touch-icon" href="/assets/apple-touch-icon.png" />
+    <meta property="og:image" content="https://oldhat.dev/assets/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="oldhat.dev — live Nginx attack log dashboard with bot, scanner and threat breakdowns" />
+    <meta name="twitter:image" content="https://oldhat.dev/assets/og-image.png" />
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@graph": [
+        {
+          "@type": "AboutPage",
+          "@id": "https://oldhat.dev/about/#webpage",
+          "url": "https://oldhat.dev/about/",
+          "name": "About oldhat.dev — what this dashboard is and how it classifies traffic",
+          "description": "About oldhat.dev: a live, unfiltered dashboard built on the Nginx access logs of oldhat.dev and api.oldhat.dev. How requests are classified into bot, human and threat categories, what the numbers do and do not mean, and where the data comes from.",
+          "inLanguage": "en",
+          "isPartOf": {
+            "@id": "https://oldhat.dev/#website"
+          },
+          "about": {
+            "@id": "https://oldhat.dev/#website"
+          },
+          "breadcrumb": {
+            "@id": "https://oldhat.dev/about/#breadcrumb"
+          }
+        },
+        {
+          "@type": "BreadcrumbList",
+          "@id": "https://oldhat.dev/about/#breadcrumb",
+          "itemListElement": [
+            {
+              "@type": "ListItem",
+              "position": 1,
+              "name": "Overview",
+              "item": "https://oldhat.dev/"
+            },
+            {
+              "@type": "ListItem",
+              "position": 2,
+              "name": "About",
+              "item": "https://oldhat.dev/about/"
+            }
+          ]
+        }
+      ]
+    }
+    </script>
+    <link rel="stylesheet" href="/assets/site.css" />
+    <script defer src="/assets/site.js"></script>
+    <script defer src="/assets/alpine.min.js"></script>
+  </head>
+  <body x-data="dashboard('about')" x-init="init()">
+    <div class="container">
+      <!-- ── Header ──────────── -->
+      <header>
+        <a href="/" class="logo">oldhat<span>.</span>dev</a>
+        <div
+          class="theme-toggle"
+          @click="toggleTheme()"
+          x-text="isDark ? '☀️ Light' : '🌙 Dark'"
+        ></div>
+      </header>
+
+      <!-- ── Section navigation ── -->
+      <nav class="site-nav" aria-label="Report sections">
+        <a href="/" class="nav-link">Overview</a>
+        <a href="/threat/" class="nav-link">🛡️ Threat</a>
+        <a href="/top-ips/" class="nav-link">🌐 Top IPs</a>
+        <a href="/bots/" class="nav-link">🤖 Bots</a>
+        <a href="/paths/" class="nav-link">📁 Paths</a>
+        <a href="/status-codes/" class="nav-link">📊 Status</a>
+        <a href="/hourly/" class="nav-link">⏰ Hourly</a>
+        <a href="/about/" class="nav-link nav-link--active" aria-current="page">ℹ️ About</a>
+      </nav>
+
+      <nav class="breadcrumb" aria-label="Breadcrumb">
+        <a href="/">Overview</a>
+        <span class="sep" aria-hidden="true">›</span>
+        <span aria-current="page">About</span>
+      </nav>
+
+      <h1 class="page-title">About oldhat.dev</h1>
+      <p class="page-sub">
+        oldhat.dev is a live, unfiltered view of the HTTP traffic hitting a small
+        production server — every crawler, scanner, credential harvester and human
+        visitor, classified and counted. Nothing is sampled and nothing is filtered out,
+        because the noise is the interesting part.
+      </p>
+
+      <div class="about">
+        <h2>What this site is</h2>
+        <div class="about-body">
+          <p>
+            This is a dashboard built on the Nginx access logs of two domains:
+            <code>oldhat.dev</code>, the static site you are reading, and
+            <code>api.oldhat.dev</code>, the JSON API behind it. Every request recorded in
+            those logs is parsed, enriched and classified, then published here as a report
+            you can browse by date. There is no demo data and no honeypot — this is the
+            ordinary background traffic of a server with a public address.
+          </p>
+          <p>
+            The aim is documentation rather than alarm. Most of what arrives is harmless:
+            search engine crawlers, uptime checkers, link previews, and an enormous amount
+            of automated probing for files that were never there.
+          </p>
+        </div>
+      </div>
+
+      <div class="about">
+        <h2>What it shows</h2>
+        <div class="about-body">
+          <p>The report is split into seven views, each with its own page:</p>
+          <ul class="related" style="flex-direction: column; gap: 8px">
+            <li>
+              <a href="/">Overview</a> — daily totals split into human and bot traffic.
+            </li>
+            <li>
+              <a href="/threat/">Threat Intelligence</a> — request paths matched against
+              known attack patterns and grouped into categories such as
+              <code>.env</code> credential harvesting, <code>.git</code> directory
+              probing, WordPress scanning, SQL injection attempts, admin panel
+              brute-force and configuration file leaks.
+            </li>
+            <li>
+              <a href="/top-ips/">Top IPs</a> — the busiest client addresses with country,
+              request volume, client type and the path each one requested most.
+            </li>
+            <li>
+              <a href="/bots/">Bot Breakdown</a> — automated clients identified from the
+              User-Agent string, ranked by hits and unique IP addresses.
+            </li>
+            <li>
+              <a href="/paths/">Path Activity</a> — the most requested URLs, with their
+              response-code split and threat category.
+            </li>
+            <li>
+              <a href="/status-codes/">Status Codes</a> — the overall 2xx / 3xx / 4xx /
+              5xx distribution.
+            </li>
+            <li>
+              <a href="/hourly/">Hourly Activity</a> — request volume per hour of the day,
+              split between total hits and bot traffic.
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="about">
+        <h2>How a request is classified</h2>
+        <div class="about-body">
+          <p>
+            Each log line is read for its path, status code, User-Agent and source
+            address. The address is resolved to a country with a GeoIP lookup. The
+            User-Agent is matched against known crawler and scanner signatures to decide
+            whether the client is human or automated, and to name the bot where possible.
+            The path is then matched against attack signatures and assigned a category;
+            anything that matches no signature is counted as <code>other</code>.
+          </p>
+          <p>Two details are worth knowing before reading any of the numbers:</p>
+          <p>
+            <strong>Addresses are masked.</strong> The last two octets of every IP are
+            replaced with asterisks. The point is to show attack patterns, not to publish
+            a list of addresses worth poking at.
+          </p>
+          <p>
+            <strong>Counts are per request, not per visitor.</strong> One aggressive
+            scanner can produce more hits in a minute than a week of human readers, so a
+            large number in the bot columns does not mean a large audience.
+          </p>
+        </div>
+      </div>
+
+      <div class="about">
+        <h2>How to read it honestly</h2>
+        <div class="about-body">
+          <p>
+            <strong>A bot is not automatically an attacker.</strong> Search crawlers, feed
+            readers and link-preview fetchers are all automated, and all welcome. They are
+            counted as bots because that is what they are, not as a judgement.
+          </p>
+          <p>
+            <strong>Most 404 traffic is noise.</strong> A request for
+            <code>/.env</code> or <code>/wp-login.php</code> is a script working through a
+            wordlist. It is worth counting because it shows what is being tried against
+            ordinary servers, but a 404 means the server simply did not have the file.
+          </p>
+          <p>
+            <strong>GeoIP is approximate.</strong> Country data comes from an address
+            lookup and is reliable at country level at best; VPNs, cloud regions and
+            mobile carriers regularly place a host somewhere unexpected.
+          </p>
+          <p>
+            <strong>One day is a small sample.</strong> Use the date picker to compare
+            days before drawing a conclusion from a spike.
+          </p>
+        </div>
+      </div>
+
+      <div class="about">
+        <h2>Data and API</h2>
+        <div class="about-body">
+          <p>
+            The data behind these pages is served from <code>api.oldhat.dev</code>, both
+            as JSON and as pre-rendered HTML fragments (the pages here request a fragment
+            and swap it into place). The report can be followed live: the
+            <em>Go Live</em> button on any section page opens a Server-Sent Events stream
+            and refreshes that section as new data lands.
+          </p>
+          <p>
+            Full history is browsable by date from each page. A health check is available
+            at
+            <a href="https://api.oldhat.dev/v1/health">api.oldhat.dev/v1/health</a>.
+          </p>
+        </div>
+      </div>
+
+      <div class="about">
+        <h2>Source</h2>
+        <div class="about-body">
+          <p>
+            The frontend is open source:
+            <a href="https://github.com/angelomadara/oldhat.dev"
+              >github.com/angelomadara/oldhat.dev</a
+            >. It is plain HTML, CSS and Alpine.js with no build step.
+          </p>
+          <p>
+            Security reports are welcome — see
+            <a href="/.well-known/security.txt">/.well-known/security.txt</a> for the
+            contact address.
+          </p>
+        </div>
+      </div>
+
+      <footer>
+        <p>
+          oldhat.dev ·
+          <a href="https://api.oldhat.dev/v1/health" target="_blank" rel="noopener"
+            >API Health</a
+          >
+          ·
+          <a href="https://github.com/angelomadara" target="_blank" rel="noopener"
+            >GitHub</a
+          >
+        </p>
+      </footer>
+    </div>
+  </body>
+</html>

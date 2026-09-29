@@ -28,12 +28,16 @@ public/
 ├── paths/index.html        # 📁 Path Activity
 ├── status-codes/index.html # 📊 Status Code Distribution
 ├── hourly/index.html       # ⏰ Hourly Activity
+├── about/index.html        # ℹ️ About — what it is, how classification works
 ├── assets/
 │   ├── site.css            # Shared stylesheet (light + dark theme)
-│   └── site.js             # Shared Alpine.js logic (theme, date, fetch, SSE)
+│   ├── site.js             # Shared Alpine.js logic (theme, date, fetch, SSE)
+│   ├── alpine.min.js       # Vendored Alpine 3.14.9 — no CDN dependency
+│   ├── favicon.svg         # Icon (+ favicon.ico, apple-touch-icon.png)
+│   └── og-image.png        # 1200x630 social card
 ├── 404.html                # Self-contained 404 page
 ├── robots.txt              # Crawler policy + sitemap reference
-├── sitemap.xml             # All seven URLs
+├── sitemap.xml             # All eight URLs
 └── .well-known/
     └── security.txt        # Security contact info
 ```
@@ -52,6 +56,7 @@ Every section page shares one Alpine.js component, `dashboard(section)`, defined
 | `/paths/` | `paths` | `/api/v1/statistics/html/paths` |
 | `/status-codes/` | `status` | `/api/v1/statistics/html/status` |
 | `/hourly/` | `hourly` | `/api/v1/statistics/html/hourly` |
+| `/about/` | `about` | — (static page, no fragment) |
 
 All fragment endpoints accept `?date=YYYY-MM-DD`; the overview page also calls
 `/api/v1/health` for the status dot.
@@ -71,6 +76,21 @@ All fragment endpoints accept `?date=YYYY-MM-DD`; the overview page also calls
 - **SEO** — each page carries unique `<title>`, description, Open Graph, canonical and
   breadcrumb JSON-LD tags, plus a static `<h1>` and explainer text that crawlers can
   read without executing JavaScript.
+
+## Search engines
+
+- `robots.txt` allows `User-agent: *`, so Googlebot and Bingbot are welcome. The
+  `Google-Extended` disallow only affects Gemini/AI training — it does **not**
+  affect Google Search ranking or indexing.
+- Every page carries a unique title, description, canonical and Open Graph image,
+  plus a `@graph` JSON-LD block (WebSite / WebPage / BreadcrumbList / AboutPage).
+- `sitemap.xml` lists all eight URLs and is referenced from `robots.txt`.
+- Each page's `<h1>` and explainer text are static HTML, so they are readable
+  without JavaScript. The live figures are fetched at runtime and are not
+  indexable — that is deliberate.
+- The site still needs registering in Google Search Console and Bing Webmaster
+  Tools, with `https://oldhat.dev/sitemap.xml` submitted. Without that there is no
+  visibility into indexing status or the queries the site actually ranks for.
 
 ## Nginx
 

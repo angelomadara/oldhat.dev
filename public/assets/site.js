@@ -79,12 +79,15 @@
         }
         this.selectedDate = saved && saved <= todayStr ? saved : todayStr;
 
-        this.checkHealth();
+        /* only the report pages carry the health/status indicator */
+        if (document.querySelector(".status-badge")) this.checkHealth();
         await this.refresh();
       },
 
       /* ── Data loading ──────────────────────────────────── */
       target() {
+        /* section === "about" is a static page with no fragment */
+        if (this.section === "about") return null;
         return this.section ? "#section-body" : "#summary-body";
       },
 
@@ -93,7 +96,9 @@
       },
 
       async refresh() {
-        await this.loadFragment(this.fragmentUrl(), this.target());
+        var t = this.target();
+        if (!t) return;
+        await this.loadFragment(this.fragmentUrl(), t);
       },
 
       async loadFragment(url, selector) {

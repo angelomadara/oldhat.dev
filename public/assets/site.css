@@ -121,6 +121,31 @@ header {
   font-weight: 600;
 }
 
+/* ── Breadcrumbs (mirrors the BreadcrumbList JSON-LD) ───── */
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+.breadcrumb a {
+  color: var(--muted);
+  text-decoration: none;
+}
+.breadcrumb a:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+.breadcrumb .sep {
+  color: var(--border);
+}
+.breadcrumb [aria-current="page"] {
+  color: var(--fg);
+}
+
 /* ── Page heading (static, crawlable) ───────────────────── */
 .page-title {
   margin: 0 0 4px;
