@@ -69,10 +69,11 @@
     }
     </script>
     <link rel="stylesheet" href="/assets/site.css" />
+    <script defer src="/assets/purify.min.js"></script>
     <script defer src="/assets/site.js"></script>
     <script defer src="/assets/alpine.min.js"></script>
   </head>
-  <body x-data="dashboard('about')" x-init="init()">
+  <body x-data="dashboard('about')">
     <div class="container">
       <!-- ── Header ──────────── -->
       <header>
@@ -132,7 +133,7 @@
       <div class="about">
         <h2>What it shows</h2>
         <div class="about-body">
-          <p>The report is split into seven views, each with its own page:</p>
+          <p>The report is split into eight views, each with its own page:</p>
           <ul class="related" style="flex-direction: column; gap: 8px">
             <li>
               <a href="/">Overview</a> — daily totals split into human and bot traffic.
@@ -147,6 +148,11 @@
             <li>
               <a href="/top-ips/">Top IPs</a> — the busiest client addresses with country,
               request volume, client type and the path each one requested most.
+            </li>
+            <li>
+              <a href="/top-countries/">Top Countries</a> — the busiest visitor countries
+              by total request volume, resolved from GeoIP lookups on every source
+              address.
             </li>
             <li>
               <a href="/bots/">Bot Breakdown</a> — automated clients identified from the

@@ -75,10 +75,11 @@
     }
     </script>
     <link rel="stylesheet" href="/assets/site.css" />
+    <script defer src="/assets/purify.min.js"></script>
     <script defer src="/assets/site.js"></script>
     <script defer src="/assets/alpine.min.js"></script>
   </head>
-  <body x-data="dashboard(null)" x-init="init()">
+  <body x-data="dashboard(null)">
     <div class="container">
       <!-- ── Header ──────────── -->
       <header>
@@ -120,7 +121,7 @@
         <div class="status-badge">
           <span
             class="status-dot"
-            :class="apiStatus === 'ok' ? 'online' : 'offline'"
+            :class="apiStatus === 'ok' ? 'online' : (apiStatus === 'loading' ? 'loading' : 'offline')"
           ></span>
           <span
             x-text="apiStatus === 'ok' ? 'API Online' : (apiStatus === 'loading' ? 'Checking...' : 'API Offline')"
@@ -182,6 +183,14 @@
             favourite path.
           </div>
         </a>
+        <a class="hub-card" href="/top-countries/">
+          <span class="hub-icon">🌍</span>
+          <div class="hub-title">Top Countries</div>
+          <div class="hub-desc">
+            Traffic volume by origin country, aggregated from GeoIP lookups on every
+            visitor IP.
+          </div>
+        </a>
         <a class="hub-card" href="/bots/">
           <span class="hub-icon">🤖</span>
           <div class="hub-title">Bot Breakdown</div>
@@ -232,6 +241,7 @@
             browsable by date. Each report section has its own page:
             <a href="/threat/">threat intelligence</a>,
             <a href="/top-ips/">top IPs</a>,
+            <a href="/top-countries/">top countries</a>,
             <a href="/bots/">bot breakdown</a>,
             <a href="/paths/">path activity</a>,
             <a href="/status-codes/">status codes</a>, and

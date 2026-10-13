@@ -16,6 +16,11 @@
     <priority>0.8</priority>
   </url>
   <url>
+    <loc>https://oldhat.dev/top-countries/</loc>
+    <changefreq>always</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
     <loc>https://oldhat.dev/bots/</loc>
     <changefreq>always</changefreq>
     <priority>0.8</priority>

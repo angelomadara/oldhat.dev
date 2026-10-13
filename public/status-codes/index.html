@@ -66,10 +66,11 @@
     }
     </script>
     <link rel="stylesheet" href="/assets/site.css" />
+    <script defer src="/assets/purify.min.js"></script>
     <script defer src="/assets/site.js"></script>
     <script defer src="/assets/alpine.min.js"></script>
   </head>
-  <body x-data="dashboard('status')" x-init="init()">
+  <body x-data="dashboard('status')">
     <div class="container">
       <!-- ── Header ──────────── -->
       <header>
@@ -110,7 +111,7 @@
         <div class="status-badge">
           <span
             class="status-dot"
-            :class="apiStatus === 'ok' ? 'online' : 'offline'"
+            :class="apiStatus === 'ok' ? 'online' : (apiStatus === 'loading' ? 'loading' : 'offline')"
           ></span>
           <span
             x-text="apiStatus === 'ok' ? 'API Online' : (apiStatus === 'loading' ? 'Checking...' : 'API Offline')"

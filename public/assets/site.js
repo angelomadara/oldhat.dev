@@ -10,18 +10,43 @@
 
   var THEME_KEY = "theme";
   var DATE_KEY = "oldhat.date";
-  var API = "/api/v1";
+
+  /* API base path.
+     Same-origin RELATIVE path on purpose — NOT https://api.oldhat.dev —
+     because the host nginx reverse-proxies /api/* to the FastAPI backend
+     (stripping the /api prefix), which keeps every request same-origin and
+     avoids CORS preflight entirely. If that nginx rule ever changes, every
+     URL below breaks at once; this constant is the single place to look.
+     Every API/SSE/health URL must derive from this constant. */
+  var API_BASE = "/api/v1";
 
   /* HTML fragment endpoints, rendered server-side by the FastAPI
      backend. Keys match the section id passed to dashboard(). */
+  /* [3] Fragments are re-injected into the DOM with innerHTML, so every
+     server-sourced string is sanitized before it lands. DOMPurify (html
+     profile) keeps the table/card markup the backend emits and strips
+     anything executable. Fail-closed escape fallback below. */
+  function sanitizeFragment(html) {
+    if (window.DOMPurify) {
+      return window.DOMPurify.sanitize(html, { USE_PROFILES: { html: true } });
+    }
+    return html
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;")
+      .replace(/'/g, "&#39;");
+  }
+
   var FRAGMENTS = {
-    summary: API + "/statistics/html/summary",
-    threat: API + "/statistics/html/threat",
-    topIps: API + "/statistics/html/top-ips",
-    bots: API + "/statistics/html/bots",
-    paths: API + "/statistics/html/paths",
-    status: API + "/statistics/html/status",
-    hourly: API + "/statistics/html/hourly",
+    summary: API_BASE + "/statistics/html/summary",
+    threat: API_BASE + "/statistics/html/threat",
+    topIps: API_BASE + "/statistics/html/top-ips",
+    topCountries: API_BASE + "/statistics/html/top-countries",
+    bots: API_BASE + "/statistics/html/bots",
+    paths: API_BASE + "/statistics/html/paths",
+    status: API_BASE + "/statistics/html/status",
+    hourly: API_BASE + "/statistics/html/hourly",
   };
 
   /* ── Theme ─────────────────────────────────────────────── */
@@ -65,9 +90,14 @@
       isLive: false,
       sseConnection: null,
       loadError: false,
+      _inflight: {}, /* url -> boolean, guards against duplicate fragment fetches */
 
       /* ── Lifecycle ─────────────────────────────────────── */
       async init() {
+        /* The backend buckets reports by its own server day (UTC). Use the
+           browser's UTC date as a first approximation; checkHealth() then
+           refines `today` from the server clock so the picker never offers
+           a day the API cannot have data for, regardless of visitor clock. */
         var todayStr = new Date().toISOString().slice(0, 10);
         this.today = todayStr;
 
@@ -104,25 +134,52 @@
       async loadFragment(url, selector) {
         var el = document.querySelector(selector);
         if (!el) return;
+        /* Skip if a fetch for this exact URL is already in flight: rapid
+           SSE updates (or refresh() racing its own target) would otherwise
+           fire concurrent same-URL fetches whose out-of-order completion
+           wins last-writer-wins and can show stale data. */
+        if (this._inflight[url]) return;
+        this._inflight[url] = true;
         try {
           var res = await fetch(
             url + "?date=" + encodeURIComponent(this.selectedDate),
             { headers: { "HX-Request": "true" } },
           );
           if (!res.ok) throw new Error("HTTP " + res.status);
-          el.innerHTML = await res.text();
+          /* [3] defense-in-depth: fragments are server-rendered HTML whose
+             cells contain visitor-controlled values (paths, UAs, IPs). The
+             backend escapes at the source; here we additionally run every
+             fragment through DOMPurify (html profile keeps markup/inline
+             styles, strips <script>, event handlers, javascript: URLs and
+             embedded objects) so a single missed escape cannot become XSS.
+             If DOMPurify ever fails to load we fail closed: escape the raw
+             text (page shows inert markup instead of executing it). */
+          el.innerHTML = sanitizeFragment(await res.text());
           this.loadError = false;
         } catch (e) {
           console.warn("Failed to load " + selector, e);
           this.loadError = true;
+        } finally {
+          this._inflight[url] = false;
         }
       },
 
       async checkHealth() {
         try {
-          var res = await fetch(API + "/health", { cache: "no-store" });
+          var res = await fetch(API_BASE + "/health", { cache: "no-store" });
           if (!res.ok) throw new Error("HTTP " + res.status);
+          var body = null;
+          try {
+            body = await res.json();
+          } catch (e) {
+            /* non-JSON health body — nothing to anchor the date on */
+          }
           this.apiStatus = "ok";
+          /* Anchor the date picker's max to the server clock (UTC). */
+          if (body && body.data && body.data.timestamp) {
+            this.today = String(body.data.timestamp).slice(0, 10);
+            if (this.selectedDate > this.today) this.selectedDate = this.today;
+          }
         } catch (e) {
           this.apiStatus = "offline";
         }
@@ -164,7 +221,7 @@
       setupSSE() {
         if (this.sseConnection) this.sseConnection.close();
 
-        var url = API + "/statistics/sse?date=" + encodeURIComponent(this.selectedDate);
+        var url = API_BASE + "/statistics/sse?date=" + encodeURIComponent(this.selectedDate);
         this.sseConnection = new EventSource(url);
 
         this.sseConnection.onmessage = (event) => {

@@ -2,5 +2,5 @@ Contact: mailto:admin@oldhat.dev
 Encryption: https://keybase.io/angelomadara/pgp_keys.asc
 Preferred-Languages: en
 Canonical: https://oldhat.dev/.well-known/security.txt
-Policy: https://oldhat.dev/.well-known/security-policy.txt
+Policy: https://oldhat.dev/security-policy.txt
 

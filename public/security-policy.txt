@@ -1,0 +1,28 @@
+# Security Policy — oldhat.dev
+
+## Reporting
+
+Please send security reports to admin@oldhat.dev.
+For encrypted communication: https://keybase.io/angelomadara/pgp_keys.asc
+
+## Scope
+
+- The static site oldhat.dev and its Nginx configuration
+- The FastAPI service at api.oldhat.dev
+- The open-source frontend repository github.com/angelomadara/oldhat.dev
+
+## What we do with reports
+
+- Every report is read and acknowledged, usually within a few days.
+- Reports are kept confidential until the issue is fixed and verified.
+- Nothing about a report is published without the reporter's permission.
+- This is a personal, hobby-run project: there is no bug bounty programme
+  and no financial reward is offered.
+
+## Guidance
+
+Please include reproducible steps and the affected URL or endpoint.
+Note that the traffic data published on this site is intentionally public;
+privacy reports about that data are still welcome.
+
+Last updated: 2026-10-13

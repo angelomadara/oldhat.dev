@@ -195,6 +195,9 @@ header {
 .status-dot.offline {
   background: var(--red);
 }
+.status-dot.loading {
+  background: var(--muted);
+}
 .date-picker {
   display: flex;
   align-items: center;
